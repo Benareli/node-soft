@@ -1,0 +1,12 @@
+Manajemen Ojek Online
+Peringatan Sisa Stok - Min Max Data on
+Transfer Stok
+Pencatatn Stok Terbuang
+Komisi Staff
+Absensi
+Pembelian
+Cetak Struk
+Struk Digital
+Manajemen Resep
+Promosi dan Loyalti
+Laporan (Email dan Excel)
