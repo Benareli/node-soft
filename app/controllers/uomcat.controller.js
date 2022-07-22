@@ -28,13 +28,7 @@ exports.findAll = (req, res) => {
   Uomcat.find(condition)
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an id
@@ -46,12 +40,7 @@ exports.findOne = (req, res) => {
       if (!data)
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
-    })
-    .catch(err => {
-      res
-        .status(500)
-        .send({ message: "Error retrieving Data with id=" + id });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an desc
@@ -62,13 +51,7 @@ exports.findByDesc = (req, res) => {
   Uomcat.find(condition)
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Update by the id in the request
@@ -93,10 +76,5 @@ exports.update = (req, res) => {
           res.send({ message: "Updated successfully." });
         }).catch(err =>{res.status(500).send({message:err.message}); });
       }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating with id=" + id
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };

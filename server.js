@@ -14,8 +14,8 @@ var corsOptions = {
 
 global.__basedir = __dirname;
 
-app.use(helmet());
-app.use(morgan('combined'));
+//app.use(helmet());
+//app.use(morgan('combined'));
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -78,6 +78,7 @@ require("./app/routes/productcat.routes")(app);
 require("./app/routes/uomcat.routes")(app);
 require("./app/routes/uom.routes")(app);
 require("./app/routes/brand.routes")(app);
+require("./app/routes/bundle.routes")(app);
 require("./app/routes/warehouse.routes")(app);
 require("./app/routes/store.routes")(app);
 require("./app/routes/partner.routes")(app);
@@ -88,6 +89,10 @@ require("./app/routes/possession.routes")(app);
 require("./app/routes/pos.routes")(app);
 require("./app/routes/posdetail.routes")(app);
 require("./app/routes/payment.routes")(app);
+require("./app/routes/purchase.routes")(app);
+require("./app/routes/purchasedetail.routes")(app);
+require("./app/routes/entry.routes")(app);
+require("./app/routes/journal.routes")(app);
 
 require("./app/routes/auth.routes")(app);
 require("./app/routes/user.routes")(app);
@@ -110,19 +115,19 @@ function checkQof() {
     .then(res => {
       if(res.length>0){
         if(res[0].partner){
-          withPartner(res[0].product, res[0].partner, res[0].warehouse);
+          withPartner(res[0].product, res[0].partner, res[0].warehouse, res[0].uom);
         }else{
-          withoutPartner(res[0].product, res[0].warehouse);
+          withoutPartner(res[0].product, res[0].warehouse, res[0].uom);
         }
       }else{console.log("No Data");}
     })
     .catch(error => console.error(error));
 }
 
-function withPartner(prod1, part1, wh1) {
+function withPartner(prod1, part1, wh1, uom1) {
   const find2 = Qop.find({product: prod1, partner: part1, warehouse: wh1}).then(res => {
     if(!res.length){
-      var qop1 = {product: prod1, partner: part1, warehouse: wh1, qop: 0};
+      var qop1 = {product: prod1, partner: part1, warehouse: wh1, qop: 0, uom: uom1};
       Qop.create(qop1).then(res => {
         let qop1 = res._id;
         const prod2 = Product.findOneAndUpdate({_id:prod1}, {$push: {qop: res._id}}, { useFindAndModify: false })
@@ -177,10 +182,10 @@ function withPartnerEnd(x, qop3, prod3, part3, wh3) {
 }
 
 //Without Partner Start Here
-function withoutPartner(proda, wha){
+function withoutPartner(proda, wha, uoma){
   const findA = Qop.find({product: proda, warehouse: wha}).then(res => {
     if(!res.length){
-      var qopaa = {product: proda, warehouse: wha, qop: 0};
+      var qopaa = {product: proda, warehouse: wha, qop: 0, uom: uoma};
       Qop.create(qopaa).then(res => {
         let qopa = res._id;
         const prodA = Product.findOneAndUpdate({_id:proda}, {$push: {qop: res._id}}, { useFindAndModify: false })
@@ -244,23 +249,39 @@ function initial() {
       });
       new Role({name: "inventory_manager"})
       .save(err => {if (err) {console.log("error", err);}
-        console.log("added 'inventory_user' to roles collection");
+        console.log("added 'inventory_manager' to roles collection");
       });
       new Role({name: "partner_user"})
       .save(err => {if (err) {console.log("error", err);}
-        console.log("added 'inventory_user' to roles collection");
+        console.log("added 'partner_user' to roles collection");
       });
       new Role({name: "partner_manager"})
       .save(err => {if (err) {console.log("error", err);}
-        console.log("added 'inventory_user' to roles collection");
+        console.log("added 'partner_manager' to roles collection");
       });
-      new Role({name: "trans_user"})
+      new Role({name: "acc_user"})
       .save(err => {if (err) {console.log("error", err);}
-        console.log("added 'inventory_user' to roles collection");
+        console.log("added 'trans_user' to roles collection");
       });
-      new Role({name: "trans_manager"})
+      new Role({name: "acc_manager"})
       .save(err => {if (err) {console.log("error", err);}
-        console.log("added 'inventory_user' to roles collection");
+        console.log("added 'trans_manager' to roles collection");
+      });
+      new Role({name: "purchase_user"})
+      .save(err => {if (err) {console.log("error", err);}
+        console.log("added 'purchase_user' to roles collection");
+      });
+      new Role({name: "purchase_manager"})
+      .save(err => {if (err) {console.log("error", err);}
+        console.log("added 'purchase_manager' to roles collection");
+      });
+      new Role({name: "pos_user"})
+      .save(err => {if (err) {console.log("error", err);}
+        console.log("added 'pos_user' to roles collection");
+      });
+      new Role({name: "pos_manager"})
+      .save(err => {if (err) {console.log("error", err);}
+        console.log("added 'pos_manager' to roles collection");
       });
       new Role({name: "admin"})
       .save(err => {if (err) {console.log("error", err);}
@@ -271,7 +292,9 @@ function initial() {
         pos_id: 1,
         pos_session: 1,
         transfer_id: 1,
-        pay_id: 1
+        pay_id: 1,
+        purchase_id: 1,
+        journal_id: 1
       });
       ids.save(function(err){
         if (err) return console.error(err.stack)
@@ -294,6 +317,12 @@ function initial() {
     }
   });
 
+  Uomcat.estimatedDocumentCount((err, count) => {
+    if (!err && count === 0) {
+      UOM();
+    }
+  });
+
   Coa.estimatedDocumentCount((err, count) => {
     if (!err && count === 0) {
       CoaCare();
@@ -309,12 +338,6 @@ function initial() {
   Partner.estimatedDocumentCount((err, count) => {
     if (!err && count === 0) {
       PartnerCare();
-    }
-  });
-
-  Uomcat.estimatedDocumentCount((err, count) => {
-    if (!err && count === 0) {
-      UOM();
     }
   });
 
@@ -346,8 +369,10 @@ function CoaCare() {
   c21001.save(function(err){if (err) return console.error(err.stack)});
   var c22001 = new Coa({prefix: 2,code: "2-2001",name: "Hutang Lainnya",active: true});
   c22001.save(function(err){if (err) return console.error(err.stack)});
-  var c23001 = new Coa({prefix: 2,code: "2-3001",name: "PPN Keluaran",active: true});
+  var c23001 = new Coa({prefix: 2,code: "2-3001",name: "Hutang Dalam Perjalanan",active: true});
   c23001.save(function(err){if (err) return console.error(err.stack)});
+  var c24001 = new Coa({prefix: 2,code: "2-4001",name: "PPN Keluaran",active: true});
+  c24001.save(function(err){if (err) return console.error(err.stack)});
   var c31001 = new Coa({prefix: 3,code: "3-1001",name: "Modal",active: true});
   c31001.save(function(err){if (err) return console.error(err.stack)});
   var c34001 = new Coa({prefix: 3,code: "3-4001",name: "Laba Rugi",active: true});
@@ -498,7 +523,6 @@ function UOM() {
     })
     uom3.save(function(err){
       if (err) return console.error(err.stack)
-      //const uomid = uoms._id;
       console.log("added 'kg' to UOM collection")
     })
     var logU3 = new Log({
@@ -549,7 +573,6 @@ function UOM() {
     })
     uom5.save(function(err){
       if (err) return console.error(err.stack)
-      //const uomid = uoms._id;
       console.log("added 'L' to UOM collection")
     })
     var logU5 = new Log({
@@ -613,6 +636,8 @@ function ProductsCare() {
           qoh: 0,
           cost: 0,
           isStock: true,
+          fg: false,
+          rm: false,
           image: "default.png",
           category: prodcat._id,
           taxin: tax._id,

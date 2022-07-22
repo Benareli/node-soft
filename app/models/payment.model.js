@@ -11,7 +11,8 @@ module.exports = mongoose => {
       pay2method: String,
       pay2note: String,
       change: Number,
-      changeMethod: String
+      changeMethod: String,
+      date: Date
     },
     { timestamps: true }
   );

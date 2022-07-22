@@ -5,7 +5,11 @@ const Payment = db.payments;
 const Coa = db.coas;
 const Journal = db.journals;
 const Entry = db.entrys;
+const Id = db.ids;
 const mongoose = require("mongoose");
+var journid;
+var journalid;
+var journalcount;
 
 // Create and Save new
 exports.create = (req, res) => {
@@ -26,7 +30,8 @@ exports.create = (req, res) => {
       pay2method: req.body.pay2method,
       pay2note: req.body.pay2note,
       change: req.body.change,
-      changeMethod: req.body.changeMethod
+      changeMethod: req.body.changeMethod,
+      date: req.body.date
     });
     Payment.create(posdetail).then(dataa => { 
       if(req.body.session!="null"){
@@ -53,7 +58,8 @@ exports.create = (req, res) => {
       pay1method: req.body.pay1method,
       pay1note: req.body.pay1note,
       change: req.body.change,
-      changeMethod: req.body.changeMethod
+      changeMethod: req.body.changeMethod,
+      date: req.body.date
     });
     Payment.create(posdetail).then(dataa => { 
       if(req.body.session!="null"){
@@ -85,27 +91,41 @@ function insertAcc(req, res) {
     if(req.pay1method=="tunai") pp = data[k]._id;
     else if(req.pay1method=="bank") pp = data[b]._id;
     else if(req.pay1method=="cc") pp = data[c]._id;
-    const ent1 = ({journal_id: req.pay_id, label: req.pay1method,
-      debit_acc: pp, debit: req.amount_total})
-    Entry.create(ent1).then(dataa => {
-      const ent2 = ({journal_id: req.pay_id, label: req.order_id ,
-        credit_acc: oo, credit: req.amount_total})
-      Entry.create(ent2).then(datab => {
-        const journal = ({journal_id: req.pay_id, amount: req.payemnt1,
-            entries:[dataa._id, datab._id]})
-          Journal.create(journal).then(datac => {
-            if(req.payment2>0){
-              secondAcc(req,res,o,k,b,c);
-            }else if(req.change>0){
-              changeAcc(req,res,o,k,b,c);
-            }else{
-              o=null;k=null;b=null;c=null;oo=null;pp=null;
-              res.send(datac);
-            }
-        });
-      })
-    })
-  })
+    Id.find().then(ids => {
+      journalid = ids[0]._id;
+      journalcount = ids[0].journal_id;
+      if(ids[0].journal_id < 10) prefixes = '00000';
+      else if(ids[0].journal_id < 100) prefixes = '0000';
+      else if(ids[0].journal_id < 1000) prefixes = '000';
+      else if(ids[0].journal_id < 10000) prefixes = '00';
+      else if(ids[0].journal_id < 100000) prefixes = '0';
+      journid = "JUR"+new Date().getFullYear().toString().substr(-2)+
+      '0'+(new Date().getMonth() + 1).toString().slice(-2)+
+      prefixes+(Number(ids[0].journal_id)+1).toString();
+        const ent1 = ({journal_id: journid, label: req.pay1method,
+          debit_acc: pp, debit: req.payment1, date: req.date})
+        Entry.create(ent1).then(dataa => {
+          const ent2 = ({journal_id: journid, label: req.order_id ,
+            credit_acc: oo, credit: req.payment1, date: req.date})
+          Entry.create(ent2).then(datab => {
+            const journal = ({journal_id: journid, origin: req.pay_id, 
+              amount: Number(req.payment1) + Number(req.payment2) ?? 0 + Number(req.change) ?? 0,
+              entries:[dataa._id, datab._id], date: req.date})
+              Journal.create(journal).then(datac => {
+                console.log("Journal", datac);
+                if(req.payment2>0){
+                  secondAcc(req,res,o,k,b,c);
+                }else if(req.change>0){
+                  changeAcc(req,res,o,k,b,c);
+                }else{
+                  o=null;k=null;b=null;c=null;oo=null;pp=null;
+                  res.send(datac);
+                }
+              }).catch(err => {res.status(500).send({message:err.message}); })
+            }).catch(err =>{res.status(500).send({message:err.message}); });
+          }).catch(err =>{res.status(500).send({message:err.message}); });
+        }).catch(err =>{res.status(500).send({message:err.message}); });
+      }).catch(err =>{res.status(500).send({message:err.message}); });
 }
 
 function secondAcc(req, res,o,k,b,c) {
@@ -115,13 +135,13 @@ function secondAcc(req, res,o,k,b,c) {
     if(req.pay2method=="tunai") pp = data[k]._id;
     else if(req.pay2method=="bank") pp = data[b]._id;
     else if(req.pay2method=="cc") pp = data[c]._id;
-    const ent1 = ({journal_id: req.pay_id, label: req.pay2method,
-      debit_acc: pp, debit: req.payment2})
+    const ent1 = ({journal_id: journid, label: req.pay2method,
+      debit_acc: pp, debit: req.payment2, date: req.date})
     Entry.create(ent1).then(dataa => {
-      const ent2 = ({journal_id: req.pay_id, label: req.order_id ,
-        credit_acc: oo, credit: req.payment2})
+      const ent2 = ({journal_id: journid, label: req.order_id ,
+        credit_acc: oo, credit: req.payment2, date: req.date})
       Entry.create(ent2).then(datab => {
-        Journal.updateOne({journal_id:req.pay_id}, 
+        Journal.updateOne({journal_id: journid}, 
             {$push: {entries: [dataa._id,datab._id]}})
           .then(datac => {
             if(req.change>0){
@@ -130,10 +150,10 @@ function secondAcc(req, res,o,k,b,c) {
               o=null;k=null;b=null;c=null;oo=null;pp=null;
               res.send(datac);
             }
-        });
-      })
-    })
-  })
+          }).catch(err =>{res.status(500).send({message:err.message}); });
+        }).catch(err =>{res.status(500).send({message:err.message}); });
+      }).catch(err =>{res.status(500).send({message:err.message}); });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 }
 
 function changeAcc(req, res,o,k,b,c) {
@@ -141,21 +161,21 @@ function changeAcc(req, res,o,k,b,c) {
     let oo = data[o]._id;
     var pp;
     pp = data[k]._id;
-    const ent1 = ({journal_id: req.pay_id, label: "Change",
-      debit_acc: oo, debit: req.change})
+    const ent1 = ({journal_id: journid, label: "Change",
+      debit_acc: oo, debit: req.change, date: req.date})
     Entry.create(ent1).then(dataa => {
-      const ent2 = ({journal_id: req.pay_id, label: req.order_id ,
-        credit_acc: pp, credit: req.change})
+      const ent2 = ({journal_id: journid, label: req.order_id ,
+        credit_acc: pp, credit: req.change, date: req.date})
       Entry.create(ent2).then(datab => {
-        Journal.updateOne({journal_id:req.pay_id}, 
+        Journal.updateOne({journal_id: journid}, 
             {$push: {entries: [dataa._id,datab._id]}})
           .then(datac => {
             o=null;k=null;b=null;c=null;oo=null;pp=null;
             res.send(datac);
-        });
-      })
-    })
-  })
+          }).catch(err =>{res.status(500).send({message:err.message}); });
+        }).catch(err =>{res.status(500).send({message:err.message}); });
+      }).catch(err =>{res.status(500).send({message:err.message}); });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 }
 
 // Retrieve all from the database.
@@ -166,13 +186,7 @@ exports.findAll = (req, res) => {
   Payment.find(condition)
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an id
@@ -184,12 +198,7 @@ exports.findOne = (req, res) => {
       if (!data)
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
-    })
-    .catch(err => {
-      res
-        .status(500)
-        .send({ message: "Error retrieving Data with id=" + id });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an desc
@@ -200,13 +209,7 @@ exports.findByDesc = (req, res) => {
   Payment.find(condition)
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Update by the id in the request
@@ -228,12 +231,7 @@ exports.update = (req, res) => {
       } else {
         res.send({ message: "Updated successfully." });
       }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating with id=" + id
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Delete with the specified id in the request
@@ -251,12 +249,7 @@ exports.delete = (req, res) => {
           message: "Deleted successfully!"
         });
       }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Could not delete with id=" + id
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Delete all from the database.
@@ -266,11 +259,5 @@ exports.deleteAll = (req, res) => {
       res.send({
         message: `${data.deletedCount} Data were deleted successfully!`
       });
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while removing all data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };

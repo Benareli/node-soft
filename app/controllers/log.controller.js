@@ -112,13 +112,7 @@ exports.findAll = (req, res) => {
     .populate({ path: 'user', model: User })
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an id
@@ -135,12 +129,7 @@ exports.findOne = (req, res) => {
       if (!data)
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
-    })
-    .catch(err => {
-      res
-        .status(500)
-        .send({ message: "Error retrieving Data with id=" + id });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an desc
@@ -156,13 +145,7 @@ exports.findByDesc = (req, res) => {
     .populate({ path: 'partner', model: Partner })
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Update by the id in the request
@@ -182,12 +165,7 @@ exports.update = (req, res) => {
           message: `Cannot update with id=${id}. Maybe Data was not found!`
         });
       } else res.send({ message: "Updated successfully." });
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating with id=" + id
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Delete with the specified id in the request
@@ -205,12 +183,7 @@ exports.delete = (req, res) => {
           message: "Deleted successfully!"
         });
       }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Could not delete with id=" + id
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Delete all from the database.
@@ -220,11 +193,5 @@ exports.deleteAll = (req, res) => {
       res.send({
         message: `${data.deletedCount} Data were deleted successfully!`
       });
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while removing all data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };

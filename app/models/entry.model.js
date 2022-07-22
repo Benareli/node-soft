@@ -12,7 +12,8 @@ module.exports = mongoose => {
       },
       debit: Number,
       credit: Number,
-      label: String
+      label: String,
+      date: Date
     },
     { timestamps: true }
   );

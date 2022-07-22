@@ -2,7 +2,7 @@ module.exports = mongoose => {
   var schema = mongoose.Schema(
     {
       order_id: String,
-      date: String,
+      date: Date,
       disc_type: String,
       discount: Number,
       amount_untaxed: Number,

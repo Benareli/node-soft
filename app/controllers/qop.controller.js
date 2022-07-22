@@ -24,13 +24,7 @@ exports.create = (req, res) => {
     .save(qop)
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Create and Update Product new
@@ -50,7 +44,7 @@ exports.createUpdate = (req, res) => {
                 const prod2 = Product.find({_id:req.body.product})
                   .then(datac => {
                     var x = datac[0].qoh + req.body.qop;
-                    var y = ((datac[0].qoh * datac[0].cost) + (req.body.qop * req.body.cost)) / x
+                    var y = (((datac[0].qoh * datac[0].cost) + (req.body.qop * req.body.cost)) / x).toFixed(2);
                     const prod3 = Product.updateOne({_id:req.body.product},{qoh:x,cost:y})
                       .then(datad => {
                         res.send(datad);
@@ -69,7 +63,7 @@ exports.createUpdate = (req, res) => {
               const prod1 = Product.find({_id:req.body.product})
                 .then(datab => {
                   var x = datab[0].qoh + req.body.qop;
-                  var y = ((datab[0].qoh * datab[0].cost) + (req.body.qop * req.body.cost)) / x
+                  var y = (((datab[0].qoh * datab[0].cost) + (req.body.qop * req.body.cost)) / x).toFixed(2);
                   const prod3 = Product.updateOne({_id:req.body.product},{qoh:x,cost:y})
                     .then(datac => {
                       res.send(datac);
@@ -79,12 +73,7 @@ exports.createUpdate = (req, res) => {
           });
         }
         
-      })
-      .catch(err => {
-        res.status(500).send({
-        message:err.message
-        });
-      });
+      }).catch(err =>{res.status(500).send({message:err.message}); });
   }else{
     Qop.find({product: req.body.product, partner: { $exists : false }, warehouse: req.body.warehouse})
       .then(data => {
@@ -98,7 +87,7 @@ exports.createUpdate = (req, res) => {
                 const prod2 = Product.find({_id:req.body.product})
                   .then(datac => {
                     var x = datac[0].qoh + req.body.qop;
-                    var y = ((datac[0].qoh * datac[0].cost) + (req.body.qop * req.body.cost)) / x
+                    var y = (((datac[0].qoh * datac[0].cost) + (req.body.qop * req.body.cost)) / x).toFixed(2);
                     const prod3 = Product.updateOne({_id:req.body.product},{qoh:x,cost:y})
                       .then(datad => {
                         res.send(datad);
@@ -117,7 +106,7 @@ exports.createUpdate = (req, res) => {
               const prod1 = Product.find({_id:req.body.product})
                 .then(datab => {
                   var x = datab[0].qoh + req.body.qop;
-                  var y = ((datab[0].qoh * datab[0].cost) + (req.body.qop * req.body.cost)) / x
+                  var y = (((datab[0].qoh * datab[0].cost) + (req.body.qop * req.body.cost)) / x).toFixed(2);
                   const prod3 = Product.updateOne({_id:req.body.product},{qoh:x,cost:y})
                     .then(datac => {
                       res.send(datac);
@@ -127,12 +116,7 @@ exports.createUpdate = (req, res) => {
           })
         }
         
-      })
-      .catch(err => {
-        res.status(500).send({
-        message:err.message
-        });
-      });
+      }).catch(err =>{res.status(500).send({message:err.message}); });
   }
 };
 
@@ -149,13 +133,7 @@ exports.findAll = (req, res) => {
     .populate({ path: 'uom', model: Uom })
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an id
@@ -170,12 +148,7 @@ exports.findOne = (req, res) => {
       if (!data)
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
-    })
-    .catch(err => {
-      res
-        .status(500)
-        .send({ message: "Error retrieving Data with id=" + id });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an desc
@@ -186,13 +159,7 @@ exports.findByProduct = (req, res) => {
     .populate({ path: 'uom', model: Uom })
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Update by the id in the request
@@ -212,10 +179,5 @@ exports.update = (req, res) => {
           message: `Cannot update with id=${id}. Maybe Data was not found!`
         });
       } else res.send({ message: "Updated successfully." });
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating with id=" + id
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };

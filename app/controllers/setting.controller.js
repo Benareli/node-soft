@@ -7,13 +7,7 @@ exports.findAll = (req, res) => {
   Setting.find()
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Update by the id in the request
@@ -35,10 +29,5 @@ exports.update = (req, res) => {
       } else {res.send(data);
        
       }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating with id=" + id
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };

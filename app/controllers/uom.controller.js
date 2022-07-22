@@ -31,31 +31,20 @@ exports.findAll = (req, res) => {
     .populate({ path: 'uom_cat', model: Uomcat })
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an id
 exports.findOne = (req, res) => {
   const id = req.params.id;
 
-  Uomcat.findById(id)
+  Uom.findById(id)
     .populate({ path: 'uom_cat', model: Uomcat })
     .then(data => {
       if (!data)
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
-    })
-    .catch(err => {
-      res
-        .status(500)
-        .send({ message: "Error retrieving Data with id=" + id });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an desc
@@ -66,13 +55,7 @@ exports.findByCat = (req, res) => {
   Uom.find({uom_cat: req.params.uomcat})
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Update by the id in the request
@@ -98,10 +81,5 @@ exports.update = (req, res) => {
           res.send({ message: "Updated successfully." });
         }).catch(err =>{res.status(500).send({message:err.message}); });
       }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating with id=" + id
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };

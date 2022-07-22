@@ -7,7 +7,8 @@ module.exports = mongoose => {
         ref: "Entry"}
       ],
       amount: Number,
-      date: String
+      date: Date,
+      origin: String,
     },
     { timestamps: true }
   );

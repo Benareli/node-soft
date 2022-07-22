@@ -12,8 +12,14 @@ module.exports = app => {
   // Retrieve a single
   routerPurDet.get("/:id", purchasedetails.findOne);
 
+  // Retrieve by PO id
+  routerPurDet.get("/po/:po", purchasedetails.findByPOId);
+
   // Update with id
   routerPurDet.put("/:id", purchasedetails.update);
+
+  // Update with id
+  routerPurDet.put("/receiveAll/:id/:partner/:wh/:date", purchasedetails.updateReceiveAll);
 
   // Delete with id
   routerPurDet.delete("/:id", purchasedetails.delete);

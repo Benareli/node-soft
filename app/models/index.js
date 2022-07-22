@@ -13,6 +13,7 @@ db.productcats = require("./productcat.model.js")(mongoose);
 db.brands = require("./brand.model.js")(mongoose);
 db.uomcats = require("./uomcat.model.js")(mongoose);
 db.uoms = require("./uom.model.js")(mongoose);
+db.bundles = require("./bundle.model.js")(mongoose);
 db.warehouses = require("./warehouse.model.js")(mongoose);
 db.stores = require("./store.model.js")(mongoose);
 db.partners = require("./partner.model.js")(mongoose);

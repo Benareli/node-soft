@@ -31,6 +31,8 @@ exports.create = (req, res) => {
       name: req.body.name,
       description: req.body.description,
       barcode: req.body.barcode,
+      fg: req.body.fg ? req.body.fg : false,
+      rm: req.body.rm ? req.body.rm : false,
       listprice: req.body.listprice,
       botprice: req.body.botprice,
       cost: req.body.cost ? cost: 0,
@@ -57,6 +59,8 @@ exports.create = (req, res) => {
       name: req.body.name,
       description: req.body.description,
       barcode: req.body.barcode,
+      fg: req.body.fg ? req.body.fg : false,
+      rm: req.body.rm ? req.body.rm : false,
       listprice: req.body.listprice,
       botprice: req.body.botprice,
       suom: req.body.suom,
@@ -85,6 +89,8 @@ exports.create = (req, res) => {
       name: req.body.name,
       description: req.body.description,
       barcode: req.body.barcode,
+      fg: req.body.fg ? req.body.fg : false,
+      rm: req.body.rm ? req.body.rm : false,
       listprice: req.body.listprice,
       botprice: req.body.botprice,
       suom: req.body.suom,
@@ -112,6 +118,8 @@ exports.create = (req, res) => {
       name: req.body.name,
       description: req.body.description,
       barcode: req.body.barcode,
+      fg: req.body.fg ? req.body.fg : false,
+      rm: req.body.rm ? req.body.rm : false,
       listprice: req.body.listprice,
       botprice: req.body.botprice,
       suom: req.body.suom,
@@ -177,7 +185,7 @@ function startSequence(x, reqs, users, res){
                 if(reqs[x].tipe=='barang'||reqs[x].tipe=='Barang'||reqs[x].tipe=="BARANG"){
                   const product = ({
                     sku:reqs[x].sku,name:reqs[x].nama,description:reqs[x].deskripsi,
-                    barcode:reqs[x].barcode,listprice:reqs[x].hargajual,qoh:0,
+                    barcode:reqs[x].barcode,fg:false,rm:false,listprice:reqs[x].hargajual,qoh:0,
                     botprice:reqs[x].hargabatas,cost:reqs[x].hpp?cost:0,image:"default.png",
                     isStock:true,category:Pcateg,taxin:Ptaxin,taxout:Ptaxout,
                     brand:Pbrand,active:true,min:reqs[x].min,max:reqs[x].max,
@@ -192,7 +200,7 @@ function startSequence(x, reqs, users, res){
                 }else{
                   const product = ({
                     sku:reqs[x].sku,name:reqs[x].nama,description:reqs[x].deskripsi,
-                    barcode:reqs[x].barcode,listprice:reqs[x].hargajual,qoh:0,
+                    barcode:reqs[x].barcode,fg:false,rm:false,listprice:reqs[x].hargajual,qoh:0,
                     botprice:reqs[x].hargabatas,cost:reqs[x].hpp?cost:0,image:"default.png",
                     isStock:false,category:Pcateg,taxin:Ptaxin,taxout:Ptaxout,
                     brand:Pbrand,active:true,min:reqs[x].min,max:reqs[x].max,
@@ -243,13 +251,7 @@ exports.findAll = (req, res) => {
     .populate({ path: 'puom', model: Uom })
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an id
@@ -268,12 +270,7 @@ exports.findOne = (req, res) => {
       if (!data)
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
-    })
-    .catch(err => {
-      res
-        .status(500)
-        .send({ message: "Error retrieving Data with id=" + id });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an desc
@@ -288,13 +285,7 @@ exports.findByDesc = (req, res) => {
     .populate({ path: 'puom', model: Uom })
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Update by the id in the request
@@ -427,12 +418,7 @@ exports.update = (req, res) => {
           res.send({ message: "Updated successfully." });
         }).catch(err =>{res.status(500).send({message:err.message}); });
       }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating with id=" + id
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
   }
 };
 
@@ -451,12 +437,7 @@ exports.delete = (req, res) => {
           message: "Deleted successfully!"
         });
       }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Could not delete with id=" + id
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Delete all from the database.
@@ -466,13 +447,7 @@ exports.deleteAll = (req, res) => {
       res.send({
         message: `${data.deletedCount} Data were deleted successfully!`
       });
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while removing all data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find all active
@@ -488,13 +463,7 @@ exports.findAllActive = (req, res) => {
     .populate({ path: 'puom', model: Uom })
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 //Find all stock
@@ -506,13 +475,7 @@ exports.findAllStock = (req, res) => {
     .populate({ path: 'puom', model: Uom })
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 //Find all active stock
@@ -525,11 +488,27 @@ exports.findAllActiveStock = (req, res) => {
     .populate({ path: 'puom', model: Uom })
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
+};
+
+//Find all fg stock
+exports.findAllRMStock = (req, res) => {
+  Product.find({ fg: false, isStock: true })
+    .populate({ path: 'suom', model: Uom })
+    .populate({ path: 'puom', model: Uom })
+    .then(data => {
+      res.send(data);
+    }).catch(err =>{res.status(500).send({message:err.message}); });
+};
+
+//Find all PO Ready
+exports.findAllPOReady = (req, res) => {
+  Product.find({ fg: false, isStock: true })
+    .populate({ path: 'suom', model: Uom })
+    .populate({ path: 'puom', model: Uom })
+    .populate({ path: 'taxin', model: Tax })
+    .populate({ path: 'taxout', model: Tax })
+    .then(data => {
+      res.send(data);
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };

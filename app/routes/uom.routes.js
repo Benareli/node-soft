@@ -12,10 +12,10 @@ module.exports = app => {
   // Retrieve a single
   routerUom.get("/:id", uoms.findOne);
 
-  // Retrieve by category
-  routerUom.get("/:id", uoms.findOne);
-
   // Update with id
+  routerUom.put("/:id", uoms.update);
+
+  // Retrieve by category
   routerUom.get("/uomcat/:uomcat", uoms.findByCat);
 
   app.use("/api/uoms", routerUom);

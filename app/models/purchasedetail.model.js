@@ -4,13 +4,19 @@ module.exports = mongoose => {
       purchase_id: String,
       qty: Number,
       qty_done: Number,
+      qty_rec: Number,
       price_unit: Number,
       discount: Number,
       tax: Number,
       subtotal: Number,
+      date: Date,
       product: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product"
+      },
+      uom: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Uom"
       },
       partner: {
         type: mongoose.Schema.Types.ObjectId,
@@ -20,10 +26,10 @@ module.exports = mongoose => {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Warehouse"
       },
-      stockmove: {
+      stockmove: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Stockmove"
-      }
+      }]
     },
     { timestamps: true }
   );

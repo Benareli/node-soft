@@ -1,13 +1,18 @@
 const db = require("../models");
-const Role = db.role;
-const mongoose = require("mongoose");
+const Journal = db.journals;
+const Entry = db.entrys;
+const User = db.users;
+const Coa = db.coas;
+const Id = db.ids;
+var journid;
+var journalid;
+var journalcount;
+//const mongoose = require("mongoose");
 
 // Retrieve all from the database.
 exports.findAll = (req, res) => {
-  const name = req.query.name;
-  var condition = name ? { name: { $regex: new RegExp(name), $options: "i" } } : {};
-
-  Role.find(condition)
+  Journal.find()
+    .populate({ path: 'entries', model: Entry })
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
@@ -17,7 +22,8 @@ exports.findAll = (req, res) => {
 exports.findOne = (req, res) => {
   const id = req.params.id;
 
-  Role.findById(id)
+  Journal.findById(id)
+    .populate({ path: 'entries', model: Entry })
     .then(data => {
       if (!data)
         res.status(404).send({ message: "Not found Data with id " + id });

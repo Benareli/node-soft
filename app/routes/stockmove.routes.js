@@ -10,7 +10,10 @@ module.exports = app => {
   routerSM.get("/", stockmoves.findAll);
 
   // Retrieve a single
-  routerSM.get("/:id", stockmoves.findOne);
+  routerSM.get("/id/:id", stockmoves.findOne);
+
+  // Retrieve a single
+  routerSM.get("/transid/:transid", stockmoves.findTransId);
 
   // Retrieve a single
   routerSM.get("/prod/:product", stockmoves.findByDesc);

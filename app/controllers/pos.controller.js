@@ -9,7 +9,11 @@ const User = db.users;
 const Coa = db.coas;
 const Journal = db.journals;
 const Entry = db.entrys;
+const Id = db.ids;
 const mongoose = require("mongoose");
+var journid;
+var journalid;
+var journalcount;
 
 // Create and Save new
 exports.create = (req, res) => {
@@ -31,6 +35,7 @@ exports.create = (req, res) => {
       partner: req.body.partner,
       user: req.body.user,
       open: req.body.open,
+      date: req.body.date,
       payment: [req.body.payment]
     });
     Pos.create(pos).then(dataa => { 
@@ -61,6 +66,7 @@ exports.create = (req, res) => {
       amount_total: req.body.amount_total,
       user: req.body.user,
       open: req.body.open,
+      date: req.body.date,
       payment: [req.body.payment]
     });
     Pos.create(pos).then(dataa => {
@@ -86,38 +92,53 @@ function insertAcc(req, res) {
   Coa.find().then(data => {
     let o = data.findIndex((obj => obj.code == '4-1001'));
     let p = data.findIndex((pbj => pbj.code == '1-2001'));
-    let q = data.findIndex((qbj => qbj.code == '2-3001'));
+    let q = data.findIndex((qbj => qbj.code == '2-4001'));
     let oo = data[o]._id;
     let pp = data[p]._id;
     let qq = data[q]._id;
-    const ent1 = ({journal_id: req.trans_id, label: req.order_id,
-      debit_acc: pp, debit: req.amount_total})
-    Entry.create(ent1).then(dataa => {
-      const ent2 = ({journal_id: req.trans_id, label: "Income + "+req.order_id,
-        credit_acc: oo, credit: req.amount_untaxed})
-      Entry.create(ent2).then(datab => {
-        const ent3 = ({journal_id: req.trans_id, label: "Tax",
-          credit_acc: qq, credit: req.amount_tax})
-        Entry.create(ent3).then(datac => {
-          if(req.amount_tax>0){
-            const journal = ({journal_id: req.order_id, amount: req.amount_total,
-              entries:[dataa._id, datab._id, datac._id]})
-            Journal.create(journal).then(datad => {
-              o=null;p=null;q=null;oo=null;pp=null;qq=null;
-              res.send(datad);
-            })
-          }else{
-            const journal = ({journal_id: req.order_id, amount: req.amount_total,
-              entries:[dataa._id, datab._id]})
-            Journal.create(journal).then(datad => {
-              o=null;p=null;q=null;oo=null;pp=null;qq=null;
-              res.send(datad);
-            })
-          }
-        })
-      })
-    })
-  })
+    Id.find().then(ids => {
+      journalid = ids[0]._id;
+      journalcount = ids[0].journal_id;
+      if(ids[0].journal_id < 10) prefixes = '00000';
+      else if(ids[0].journal_id < 100) prefixes = '0000';
+      else if(ids[0].journal_id < 1000) prefixes = '000';
+      else if(ids[0].journal_id < 10000) prefixes = '00';
+      else if(ids[0].journal_id < 100000) prefixes = '0';
+      journid = "JUR"+new Date().getFullYear().toString().substr(-2)+
+      '0'+(new Date().getMonth() + 1).toString().slice(-2)+
+      prefixes+ids[0].journal_id.toString();
+      const ent1 = ({journal_id: journid, label: req.order_id,
+        debit_acc: pp, debit: req.amount_total, date: req.date})
+      Id.findOneAndUpdate({_id: journalid}, {journal_id: journalcount+2}, {useFindAndModify: false})
+        .then(datae => {
+        Entry.create(ent1).then(dataa => {
+          const ent2 = ({journal_id: journid, label: "Income + "+req.order_id,
+            credit_acc: oo, credit: req.amount_untaxed, date: req.date})
+          Entry.create(ent2).then(datab => {
+            const ent3 = ({journal_id: journid , label: "Tax",
+              credit_acc: qq, credit: req.amount_tax, date: req.date})
+            Entry.create(ent3).then(datac => {
+              if(req.amount_tax>0){
+                const journal = ({journal_id: journid, origin: req.order_id, amount: req.amount_total,
+                  entries:[dataa._id, datab._id, datac._id], date: req.date})
+                Journal.create(journal).then(datad => {
+                  o=null;p=null;q=null;oo=null;pp=null;qq=null;
+                  res.send(datad);
+                }).catch(err =>{res.status(500).send({message:err.message}); });
+              }else{
+                const journal = ({journal_id: journid, origin: req.order_id, amount: req.amount_total,
+                  entries:[dataa._id, datab._id], date: req.date})
+                Journal.create(journal).then(datad => {
+                  o=null;p=null;q=null;oo=null;pp=null;qq=null;
+                  res.send(datad);
+                }).catch(err =>{res.status(500).send({message:err.message}); });
+              }
+            }).catch(err =>{res.status(500).send({message:err.message}); });
+          }).catch(err =>{res.status(500).send({message:err.message}); });
+        }).catch(err =>{res.status(500).send({message:err.message}); });
+      }).catch(err =>{res.status(500).send({message:err.message}); });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
+  }).catch(err =>{res.status(500).send({message:err.message}); });
 }
 
 // Retrieve all from the database.
@@ -130,13 +151,7 @@ exports.findAll = (req, res) => {
     .populate({ path: 'user', model: User })
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an id
@@ -150,12 +165,7 @@ exports.findOne = (req, res) => {
       if (!data)
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
-    })
-    .catch(err => {
-      res
-        .status(500)
-        .send({ message: "Error retrieving Data with id=" + id });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Find a single with an desc
@@ -168,13 +178,7 @@ exports.findByDesc = (req, res) => {
     .populate({ path: 'user', model: User })
     .then(data => {
       res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Update by the id in the request
@@ -196,12 +200,7 @@ exports.update = (req, res) => {
       } else {
         res.send({ message: "Updated successfully." });
       }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating with id=" + id
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Delete with the specified id in the request
@@ -219,12 +218,7 @@ exports.delete = (req, res) => {
           message: "Deleted successfully!"
         });
       }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Could not delete with id=" + id
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
 // Delete all from the database.
@@ -234,11 +228,5 @@ exports.deleteAll = (req, res) => {
       res.send({
         message: `${data.deletedCount} Data were deleted successfully!`
       });
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while removing all data."
-      });
-    });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 };

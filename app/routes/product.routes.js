@@ -21,6 +21,12 @@ module.exports = app => {
   // Retrieve all active stock
   routerProduct.get("/activestock", products.findAllActiveStock);
 
+  // Retrieve all inactive fg
+  routerProduct.get("/rmready", products.findAllRMStock);
+
+  // Retrieve all PO ready
+  routerProduct.get("/poready", products.findAllPOReady);
+
   // Retrieve a single
   routerProduct.get("/:id", products.findOne);
 
