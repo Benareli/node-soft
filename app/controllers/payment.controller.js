@@ -109,7 +109,7 @@ function insertAcc(req, res) {
             credit_acc: oo, credit: req.payment1, date: req.date})
           Entry.create(ent2).then(datab => {
             const journal = ({journal_id: journid, origin: req.pay_id, 
-              amount: Number(req.payment1) + Number(req.payment2) ?? 0 + Number(req.change) ?? 0,
+              amount: Number(req.payment1) + Number(req.payment2) ? req.payment2: 0 + Number(req.change) ? req.change: 0,
               entries:[dataa._id, datab._id], date: req.date})
               Journal.create(journal).then(datac => {
                 console.log("Journal", datac);
