@@ -10,6 +10,66 @@ exports.findAll = (req, res) => {
     }).catch(err =>{res.status(500).send({message:err.message}); });
 };
 
+// Retrieve POSID.
+exports.findPOSessId = (req, res) => {
+  Id.find()
+    .then(ids => {
+      if(ids[0].pos_session < 10) prefixes = '00000';
+      else if(ids[0].pos_session < 100) prefixes = '0000';
+      else if(ids[0].pos_session < 1000) prefixes = '000';
+      else if(ids[0].pos_session < 10000) prefixes = '00';
+      else if(ids[0].pos_session < 100000) prefixes = '0';
+      posid = ids[0].pre_pos_session+'-'+new Date().getFullYear().toString().substr(-2)+
+      '0'+(new Date().getMonth() + 1).toString().slice(-2)+
+      prefixes+ids[0].pos_session.toString();
+      Id.findOneAndUpdate({_id: ids[0]._id}, {pos_session: Number(ids[0].pos_session) + 1}, {useFindAndModify: false})
+        .then(data => {
+          res.send({message: posid});
+          //console.log(data, posid);
+        }).catch(err =>{res.status(500).send({message:err.message}); });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
+};
+
+// Retrieve POSID.
+exports.findPOSId = (req, res) => {
+  Id.find()
+    .then(ids => {
+      if(ids[0].pos_id < 10) prefixes = '00000';
+      else if(ids[0].pos_id < 100) prefixes = '0000';
+      else if(ids[0].pos_id < 1000) prefixes = '000';
+      else if(ids[0].pos_id < 10000) prefixes = '00';
+      else if(ids[0].pos_id < 100000) prefixes = '0';
+      posid = ids[0].pre_pos_id+'-'+new Date().getFullYear().toString().substr(-2)+
+      '0'+(new Date().getMonth() + 1).toString().slice(-2)+
+      prefixes+ids[0].pos_id.toString();
+      Id.findOneAndUpdate({_id: ids[0]._id}, {pos_id: Number(ids[0].pos_id) + 1}, {useFindAndModify: false})
+        .then(data => {
+          res.send({message: posid});
+          //console.log(data, posid);
+        }).catch(err =>{res.status(500).send({message:err.message}); });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
+};
+
+// Retrieve PaymentID.
+exports.findPaymentId = (req, res) => {
+  Id.find()
+    .then(ids => {
+      if(ids[0].pay_id < 10) prefixes = '00000';
+      else if(ids[0].pay_id < 100) prefixes = '0000';
+      else if(ids[0].pay_id < 1000) prefixes = '000';
+      else if(ids[0].pay_id < 10000) prefixes = '00';
+      else if(ids[0].pay_id < 100000) prefixes = '0';
+      payid = ids[0].pre_pay_id+'-'+new Date().getFullYear().toString().substr(-2)+
+      '0'+(new Date().getMonth() + 1).toString().slice(-2)+
+      prefixes+ids[0].pay_id.toString();
+      Id.findOneAndUpdate({_id: ids[0]._id}, {pay_id: Number(ids[0].pay_id) + 1}, {useFindAndModify: false})
+        .then(data => {
+          res.send({message: payid});
+          //console.log(data, posid);
+        }).catch(err =>{res.status(500).send({message:err.message}); });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
+};
+
 // Update by the id in the request
 exports.update = (req, res) => {
   if (!req.body) {
@@ -36,3 +96,22 @@ exports.update = (req, res) => {
       });
     });
 };
+
+/*exports.journalId = 
+  Id.find()
+    .then(ids => {
+      if(ids[0].journal_id < 10) prefixes = '00000';
+      else if(ids[0].journal_id < 100) prefixes = '0000';
+      else if(ids[0].journal_id < 1000) prefixes = '000';
+      else if(ids[0].journal_id < 10000) prefixes = '00';
+      else if(ids[0].journal_id < 100000) prefixes = '0';
+      journid = ids[0].pre_journal_id+'-'+new Date().getFullYear().toString().substr(-2)+
+      '0'+(new Date().getMonth() + 1).toString().slice(-2)+
+      prefixes+ids[0].journal_id.toString();
+      Id.findOneAndUpdate({_id: ids[0]._id}, {journal_id: Number(ids[0].journal_id) + 1}, {useFindAndModify: false})
+        .then(data => {
+          return journid;
+          //console.log(data, posid);
+        }).catch(err =>{res.status(500).send({message:err.message}); });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
+*/

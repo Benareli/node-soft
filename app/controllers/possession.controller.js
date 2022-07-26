@@ -21,6 +21,7 @@ exports.create = (req, res) => {
     shift: req.body.shift,
     start_balance: req.body.start_balance,
     end_balance: req.body.start_balance,
+    store: req.body.store,
     money_in: 0,
     money_out: 0,
     total_discount: 0,

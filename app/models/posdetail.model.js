@@ -15,6 +15,10 @@ module.exports = mongoose => {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product"
       },
+      store: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Store"
+      },
       warehouse: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Warehouse"

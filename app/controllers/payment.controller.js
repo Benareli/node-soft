@@ -11,6 +11,8 @@ var journid;
 var journalid;
 var journalcount;
 
+const { id } = require("../function");
+
 // Create and Save new
 exports.create = (req, res) => {
   // Validate request
@@ -80,7 +82,13 @@ exports.create = (req, res) => {
   }
 };
 
+async function getId() {
+  const response = await id.getJournalId();
+  journid = response;
+}
+
 function insertAcc(req, res) {
+  //getId();
   Coa.find().then(data => {
     let o = data.findIndex((obj => obj.code == '1-2001'));
     let k = data.findIndex((kbj => kbj.code == '1-1001'));
@@ -99,7 +107,7 @@ function insertAcc(req, res) {
       else if(ids[0].journal_id < 1000) prefixes = '000';
       else if(ids[0].journal_id < 10000) prefixes = '00';
       else if(ids[0].journal_id < 100000) prefixes = '0';
-      journid = "JUR"+new Date().getFullYear().toString().substr(-2)+
+      journid = ids[0].pre_journal_id+'-'+new Date().getFullYear().toString().substr(-2)+
       '0'+(new Date().getMonth() + 1).toString().slice(-2)+
       prefixes+(Number(ids[0].journal_id)+1).toString();
         const ent1 = ({journal_id: journid, label: req.pay1method,
@@ -112,7 +120,6 @@ function insertAcc(req, res) {
               amount: Number(req.payment1) + Number(req.payment2) ? req.payment2: 0 + Number(req.change) ? req.change: 0,
               entries:[dataa._id, datab._id], date: req.date})
               Journal.create(journal).then(datac => {
-                console.log("Journal", datac);
                 if(req.payment2>0){
                   secondAcc(req,res,o,k,b,c);
                 }else if(req.change>0){

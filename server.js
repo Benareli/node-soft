@@ -290,11 +290,21 @@ function initial() {
       
       var ids = new Ids({
         pos_id: 1,
+        pre_pos_id: "POS",
         pos_session: 1,
+        pre_pos_session: "POS-SESS",
         transfer_id: 1,
+        pre_transfer_id: "TRANSF",
         pay_id: 1,
+        pre_pay_id: "PAY",
         purchase_id: 1,
-        journal_id: 1
+        pre_purchase_id: "PUR",
+        journal_id: 1,
+        pre_journal_id: "JOUR",
+        bill_id: 1,
+        pre_bill_id: "BILL",
+        invoice_id: 1,
+        pre_invoice_id: "INVOICE"
       });
       ids.save(function(err){
         if (err) return console.error(err.stack)

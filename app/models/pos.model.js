@@ -8,6 +8,10 @@ module.exports = mongoose => {
       amount_untaxed: Number,
       amount_tax: Number,
       amount_total: Number,
+      store: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Store"
+      },
       partner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Partner"

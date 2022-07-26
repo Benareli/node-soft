@@ -34,7 +34,8 @@ exports.create = (req, res) => {
     const posdetail = ({
       order_id: req.body.order_id, qty: req.body.qty, uom: req.body.uom,
       price_unit: req.body.price_unit, tax: req.body.tax, subtotal: req.body.subtotal,
-      product: req.body.product, warehouse: req.body.warehouse, date: req.body.date
+      product: req.body.product, warehouse: req.body.warehouse, date: req.body.date,
+      store: req.body.store,
     });
     Posdetail.create(posdetail).then(dataa => {
       //Pos.find(mongoose.Types.ObjectId(req.body.ids))
@@ -50,7 +51,7 @@ exports.create = (req, res) => {
                 else if(ids[0].transfer_id < 1000) prefixes = '000';
                 else if(ids[0].transfer_id < 10000) prefixes = '00';
                 else if(ids[0].transfer_id < 100000) prefixes = '0';
-                transid = "TRANS"+new Date().getFullYear().toString().substr(-2)+
+                transid = ids[0].pre_transfer_id+'-'+new Date().getFullYear().toString().substr(-2)+
                 '0'+(new Date().getMonth() + 1).toString().slice(-2)+
                 prefixes+ids[0].transfer_id.toString();
                 const stockmove = ({
@@ -83,7 +84,7 @@ exports.create = (req, res) => {
                 else if(ids[0].transfer_id < 1000) prefixes = '000';
                 else if(ids[0].transfer_id < 10000) prefixes = '00';
                 else if(ids[0].transfer_id < 100000) prefixes = '0';
-                transid = "TRANS"+new Date().getFullYear().toString().substr(-2)+
+                transid = ids[0].pre_transfer_id+'-'+new Date().getFullYear().toString().substr(-2)+
                 '0'+(new Date().getMonth() + 1).toString().slice(-2)+
                 prefixes+ids[0].transfer_id.toString();
                 const stockmove = ({
@@ -120,7 +121,8 @@ exports.create = (req, res) => {
       subtotal: req.body.subtotal,
       product: req.body.product,
       warehouse: req.body.warehouse,
-      date: req.body.date
+      date: req.body.date,
+      store: req.body.store,
     });
     Posdetail.create(posdetail).then(dataa => { 
       Pos.findOneAndUpdate({order_id: req.body.order_id}, {$push: {pos_detail: dataa._id}}, { useFindAndModify: false })
@@ -135,7 +137,8 @@ function insertPOSDetail(reqs,res){
   const posdetail2 = ({
     order_id: reqs.order_id, qty: reqs.qty, uom: reqs.uom,
     price_unit: reqs.price_unit, tax: reqs.tax, subtotal: reqs.subtotal,
-    product: reqs.product, warehouse: reqs.warehouse, date: reqs.date
+    product: reqs.product, warehouse: reqs.warehouse, date: reqs.date,
+    store: req.body.store,
   });
   Posdetail.create(posdetail2).then(dataz => {
     Pos.findOneAndUpdate({order_id: reqs.order_id}, {$push: {pos_detail: dataz._id}}, { useFindAndModify: false })
@@ -152,7 +155,6 @@ function startSequence(reqs, res){
 }
 
 function playSequencing(x, reqs, dat, res){
-   //console.log(dat);
   if(dat[x]){
    if(reqs.partner=="null" || !reqs.partner){
     const qof1 = ({qof: 0-(Number(reqs.qty) * Number(dat[x].qty)), product: dat[x].product, 
@@ -164,7 +166,7 @@ function playSequencing(x, reqs, dat, res){
           else if(ids[0].transfer_id < 1000) prefixes = '000';
           else if(ids[0].transfer_id < 10000) prefixes = '00';
           else if(ids[0].transfer_id < 100000) prefixes = '0';
-          transid = "TRANS"+new Date().getFullYear().toString().substr(-2)+
+          transid = ids[0].pre_transfer_id+'-'+new Date().getFullYear().toString().substr(-2)+
           '0'+(new Date().getMonth() + 1).toString().slice(-2)+
           prefixes+ids[0].transfer_id.toString();
           const stockmove = ({
@@ -196,7 +198,7 @@ function playSequencing(x, reqs, dat, res){
           else if(ids[0].transfer_id < 1000) prefixes = '000';
           else if(ids[0].transfer_id < 10000) prefixes = '00';
           else if(ids[0].transfer_id < 100000) prefixes = '0';
-          transid = "TRANS"+new Date().getFullYear().toString().substr(-2)+
+          transid = ids[0].pre_transfer_id+'-'+new Date().getFullYear().toString().substr(-2)+
           '0'+(new Date().getMonth() + 1).toString().slice(-2)+
           prefixes+ids[0].transfer_id.toString();
           const stockmove = ({
@@ -293,15 +295,13 @@ function insertAcc(req, res) {
         Entry.create(ent1).then(dataa => {
           const ent2 = ({journal_id: journid, label: prodname,
             credit_acc: oo, credit: costA, date: req.date})
-          console.log("ent2", ent2);
           Entry.create(ent2).then(datab => {
             Journal.findOneAndUpdate({_id: journ_id}, 
               {$push: {entries: [dataa._id,datab._id]}, amount: costA + amountx}, {useFindAndModify: false})
               .then(datac => {
-                console.log("Journal", datac);
                 o=null,p=null,oo=null,pp=null;
                 res.send(datac);
-              }).catch(err =>{console.log(err.message);res.status(500).send({message:err.message}); });
+              }).catch(err =>{res.status(500).send({message:err.message}); });
             }).catch(err =>{res.status(500).send({message:err.message}); });
           }).catch(err =>{res.status(500).send({message:err.message}); });
         }).catch(err =>{res.status(500).send({message:err.message}); });

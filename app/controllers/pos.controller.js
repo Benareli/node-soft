@@ -36,6 +36,7 @@ exports.create = (req, res) => {
       user: req.body.user,
       open: req.body.open,
       date: req.body.date,
+      store: req.body.store,
       payment: [req.body.payment]
     });
     Pos.create(pos).then(dataa => { 
@@ -67,6 +68,7 @@ exports.create = (req, res) => {
       user: req.body.user,
       open: req.body.open,
       date: req.body.date,
+      store: req.body.store,
       payment: [req.body.payment]
     });
     Pos.create(pos).then(dataa => {
@@ -104,7 +106,7 @@ function insertAcc(req, res) {
       else if(ids[0].journal_id < 1000) prefixes = '000';
       else if(ids[0].journal_id < 10000) prefixes = '00';
       else if(ids[0].journal_id < 100000) prefixes = '0';
-      journid = "JUR"+new Date().getFullYear().toString().substr(-2)+
+      journid = ids[0].pre_journal_id+'-'+new Date().getFullYear().toString().substr(-2)+
       '0'+(new Date().getMonth() + 1).toString().slice(-2)+
       prefixes+ids[0].journal_id.toString();
       const ent1 = ({journal_id: journid, label: req.order_id,
