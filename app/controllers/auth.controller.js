@@ -41,7 +41,7 @@ exports.signup = (req, res) => {
         }
       );
     } else {
-      Role.findOne({ name: "admin" }, (err, role) => {
+      Role.findOne({ name: "pos_user" }, (err, role) => {
         if (err) {
           res.status(500).send({ message: err });
           return;

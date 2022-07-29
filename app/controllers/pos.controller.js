@@ -1,4 +1,5 @@
 const db = require("../models");
+const {id,coa} = require("../function");
 const Pos = db.poss;
 const Posdetail = db.posdetails;
 const Possession = db.possessions;
@@ -14,6 +15,21 @@ const mongoose = require("mongoose");
 var journid;
 var journalid;
 var journalcount;
+
+async function getJournalId() {
+  const res1 = await id.getJournalId();
+  return res1;
+}
+
+async function updateJournalId2(journalid, journalcount) {
+  const res2 = await id.updateJournalId2(journalid, journalcount);
+  return res2;
+}
+
+async function getCoaPos() {
+  const res3 = await coa.getCoaPos();
+  return res3;
+}
 
 // Create and Save new
 exports.create = (req, res) => {
@@ -91,27 +107,15 @@ exports.create = (req, res) => {
 };
 
 function insertAcc(req, res) {
-  Coa.find().then(data => {
-    let o = data.findIndex((obj => obj.code == '4-1001'));
-    let p = data.findIndex((pbj => pbj.code == '1-2001'));
-    let q = data.findIndex((qbj => qbj.code == '2-4001'));
-    let oo = data[o]._id;
-    let pp = data[p]._id;
-    let qq = data[q]._id;
-    Id.find().then(ids => {
-      journalid = ids[0]._id;
-      journalcount = ids[0].journal_id;
-      if(ids[0].journal_id < 10) prefixes = '00000';
-      else if(ids[0].journal_id < 100) prefixes = '0000';
-      else if(ids[0].journal_id < 1000) prefixes = '000';
-      else if(ids[0].journal_id < 10000) prefixes = '00';
-      else if(ids[0].journal_id < 100000) prefixes = '0';
-      journid = ids[0].pre_journal_id+'-'+new Date().getFullYear().toString().substr(-2)+
-      '0'+(new Date().getMonth() + 1).toString().slice(-2)+
-      prefixes+ids[0].journal_id.toString();
+  getCoaPos().then(datacoa => {
+    let oo = datacoa[0];
+    let pp = datacoa[1];
+    let qq = datacoa[2];
+    getJournalId().then(dataid => {
+      journid = dataid[0];
       const ent1 = ({journal_id: journid, label: req.order_id,
         debit_acc: pp, debit: req.amount_total, date: req.date})
-      Id.findOneAndUpdate({_id: journalid}, {journal_id: journalcount+2}, {useFindAndModify: false})
+      updateJournalId2(dataid[1], dataid[2])
         .then(datae => {
         Entry.create(ent1).then(dataa => {
           const ent2 = ({journal_id: journid, label: "Income + "+req.order_id,
@@ -124,14 +128,12 @@ function insertAcc(req, res) {
                 const journal = ({journal_id: journid, origin: req.order_id, amount: req.amount_total,
                   entries:[dataa._id, datab._id, datac._id], date: req.date})
                 Journal.create(journal).then(datad => {
-                  o=null;p=null;q=null;oo=null;pp=null;qq=null;
                   res.send(datad);
                 }).catch(err =>{res.status(500).send({message:err.message}); });
               }else{
                 const journal = ({journal_id: journid, origin: req.order_id, amount: req.amount_total,
                   entries:[dataa._id, datab._id], date: req.date})
                 Journal.create(journal).then(datad => {
-                  o=null;p=null;q=null;oo=null;pp=null;qq=null;
                   res.send(datad);
                 }).catch(err =>{res.status(500).send({message:err.message}); });
               }

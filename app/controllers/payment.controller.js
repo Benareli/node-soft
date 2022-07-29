@@ -1,4 +1,5 @@
 const db = require("../models");
+const {id,coa} = require("../function");
 const Pos = db.poss;
 const Possession = db.possessions;
 const Payment = db.payments;
@@ -10,8 +11,6 @@ const mongoose = require("mongoose");
 var journid;
 var journalid;
 var journalcount;
-
-const { id } = require("../function");
 
 // Create and Save new
 exports.create = (req, res) => {
@@ -82,66 +81,51 @@ exports.create = (req, res) => {
   }
 };
 
-async function getId() {
-  const response = await id.getJournalId();
-  journid = response;
+async function getJournalId1() {
+  const res1 = await id.getJournalId1();
+  return res1;
+}
+
+async function getCoaPayment(x, req) {
+  const res2 = await coa.getCoaPayment(x, req);
+  return res2;
 }
 
 function insertAcc(req, res) {
-  //getId();
-  Coa.find().then(data => {
-    let o = data.findIndex((obj => obj.code == '1-2001'));
-    let k = data.findIndex((kbj => kbj.code == '1-1001'));
-    let b = data.findIndex((bbj => bbj.code == '1-1101'));
-    let c = data.findIndex((cbj => cbj.code == '1-1111'));
-    let oo = data[o]._id;
-    var pp;
-    if(req.pay1method=="tunai") pp = data[k]._id;
-    else if(req.pay1method=="bank") pp = data[b]._id;
-    else if(req.pay1method=="cc") pp = data[c]._id;
-    Id.find().then(ids => {
-      journalid = ids[0]._id;
-      journalcount = ids[0].journal_id;
-      if(ids[0].journal_id < 10) prefixes = '00000';
-      else if(ids[0].journal_id < 100) prefixes = '0000';
-      else if(ids[0].journal_id < 1000) prefixes = '000';
-      else if(ids[0].journal_id < 10000) prefixes = '00';
-      else if(ids[0].journal_id < 100000) prefixes = '0';
-      journid = ids[0].pre_journal_id+'-'+new Date().getFullYear().toString().substr(-2)+
-      '0'+(new Date().getMonth() + 1).toString().slice(-2)+
-      prefixes+(Number(ids[0].journal_id)+1).toString();
-        const ent1 = ({journal_id: journid, label: req.pay1method,
-          debit_acc: pp, debit: req.payment1, date: req.date})
-        Entry.create(ent1).then(dataa => {
-          const ent2 = ({journal_id: journid, label: req.order_id ,
-            credit_acc: oo, credit: req.payment1, date: req.date})
-          Entry.create(ent2).then(datab => {
-            const journal = ({journal_id: journid, origin: req.pay_id, 
-              amount: Number(req.payment1) + Number(req.payment2) ? req.payment2: 0 + Number(req.change) ? req.change: 0,
-              entries:[dataa._id, datab._id], date: req.date})
-              Journal.create(journal).then(datac => {
-                if(req.payment2>0){
-                  secondAcc(req,res,o,k,b,c);
-                }else if(req.change>0){
-                  changeAcc(req,res,o,k,b,c);
-                }else{
-                  o=null;k=null;b=null;c=null;oo=null;pp=null;
-                  res.send(datac);
-                }
-              }).catch(err => {res.status(500).send({message:err.message}); })
-            }).catch(err =>{res.status(500).send({message:err.message}); });
+  getCoaPayment(1, req).then(datacoa => {
+    oo = datacoa[0];
+    pp = datacoa[1];
+    getJournalId1().then(dataid => {
+      journid = dataid;
+      const ent1 = ({journal_id: journid, label: req.pay1method,
+        debit_acc: pp, debit: req.payment1, date: req.date})
+      Entry.create(ent1).then(dataa => {
+        const ent2 = ({journal_id: journid, label: req.order_id ,
+          credit_acc: oo, credit: req.payment1, date: req.date})
+        Entry.create(ent2).then(datab => {
+          const journal = ({journal_id: journid, origin: req.pay_id, 
+            amount: Number(req.payment1) + Number(req.payment2) + 
+              Number(req.change),
+            entries:[dataa._id, datab._id], date: req.date})
+            Journal.create(journal).then(datac => {
+              if(req.payment2>0){
+                secondAcc(req,res);
+              }else if(req.change>0){
+                changeAcc(req,res);
+              }else{
+                res.send(datac);
+              }
+            }).catch(err => {res.status(500).send({message:err.message}); })
           }).catch(err =>{res.status(500).send({message:err.message}); });
         }).catch(err =>{res.status(500).send({message:err.message}); });
       }).catch(err =>{res.status(500).send({message:err.message}); });
+    }).catch(err =>{res.status(500).send({message:err.message}); });
 }
 
-function secondAcc(req, res,o,k,b,c) {
-  Coa.find().then(data => {
-    let oo = data[o]._id;
-    var pp;
-    if(req.pay2method=="tunai") pp = data[k]._id;
-    else if(req.pay2method=="bank") pp = data[b]._id;
-    else if(req.pay2method=="cc") pp = data[c]._id;
+function secondAcc(req, res) {
+  getCoaPayment(2, req).then(datacoa => {
+    oo = datacoa[0];
+    pp = datacoa[1];
     const ent1 = ({journal_id: journid, label: req.pay2method,
       debit_acc: pp, debit: req.payment2, date: req.date})
     Entry.create(ent1).then(dataa => {
@@ -154,7 +138,6 @@ function secondAcc(req, res,o,k,b,c) {
             if(req.change>0){
               changeAcc(req,res,o,k,b,c);
             }else{
-              o=null;k=null;b=null;c=null;oo=null;pp=null;
               res.send(datac);
             }
           }).catch(err =>{res.status(500).send({message:err.message}); });
@@ -163,11 +146,10 @@ function secondAcc(req, res,o,k,b,c) {
     }).catch(err =>{res.status(500).send({message:err.message}); });
 }
 
-function changeAcc(req, res,o,k,b,c) {
-  Coa.find().then(data => {
-    let oo = data[o]._id;
-    var pp;
-    pp = data[k]._id;
+function changeAcc(req, res) {
+  getCoaPayment(3, req).then(datacoa => {
+    oo = datacoa[0];
+    pp = datacoa[1];
     const ent1 = ({journal_id: journid, label: "Change",
       debit_acc: oo, debit: req.change, date: req.date})
     Entry.create(ent1).then(dataa => {
@@ -177,7 +159,6 @@ function changeAcc(req, res,o,k,b,c) {
         Journal.updateOne({journal_id: journid}, 
             {$push: {entries: [dataa._id,datab._id]}})
           .then(datac => {
-            o=null;k=null;b=null;c=null;oo=null;pp=null;
             res.send(datac);
           }).catch(err =>{res.status(500).send({message:err.message}); });
         }).catch(err =>{res.status(500).send({message:err.message}); });

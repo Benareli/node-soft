@@ -313,7 +313,7 @@ function initial() {
 
       var settings = new Setting({
         cost_general: true,
-        comp_name: "Soft Solution",
+        comp_name: "Ablouz",
         comp_addr: "",
         comp_phone: "",
         comp_email: "",
@@ -418,13 +418,13 @@ function WarehouseCare() {
         if(err) return console.error(err.stack)
         console.log("Log is added");
         var store = new Store({
-          store_name: "Soft Solution",
+          store_name: "Ablouz",
           warehouse: warehouse._id,
           active: true
         })
         store.save(function(err){
           if (err) return console.error(err.stack)
-          console.log("addes 'Soft Solution' to store collection");
+          console.log("addes 'Ablouz' to store collection");
           var logStore = new Log({
             message: "dibuat oleh sistem",
             store: store._id

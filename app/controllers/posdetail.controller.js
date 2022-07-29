@@ -1,4 +1,5 @@
 const db = require("../models");
+const {id,coa} = require("../function");
 const Pos = db.poss;
 const Posdetail = db.posdetails;
 const Id = db.ids;
@@ -19,6 +20,16 @@ var transid = '';
 var journid;
 var journalid;
 var journalcount;
+
+async function getUpdateTransId() {
+  const res1 = await id.getUpdateTransId();
+  return res1;
+}
+
+async function getCoa2(coa1, coa2) {
+  const res2 = await coa.getCoa2(coa1, coa2);
+  return res2;
+}
 
 // Create and Save new
 exports.create = (req, res) => {
@@ -45,15 +56,8 @@ exports.create = (req, res) => {
             const qof1 = ({qof: 0-Number(req.body.qty), product: req.body.product, 
               warehouse: req.body.warehouse, uom: req.body.uom});
             Qof.create(qof1).then(datac => {
-              Id.find().then(ids => {
-                if(ids[0].transfer_id < 10) prefixes = '00000';
-                else if(ids[0].transfer_id < 100) prefixes = '0000';
-                else if(ids[0].transfer_id < 1000) prefixes = '000';
-                else if(ids[0].transfer_id < 10000) prefixes = '00';
-                else if(ids[0].transfer_id < 100000) prefixes = '0';
-                transid = ids[0].pre_transfer_id+'-'+new Date().getFullYear().toString().substr(-2)+
-                '0'+(new Date().getMonth() + 1).toString().slice(-2)+
-                prefixes+ids[0].transfer_id.toString();
+              getUpdateTransId().then(restransid => {
+                transid = restransid;
                 const stockmove = ({
                   trans_id: transid,
                   user: req.body.user,
@@ -65,11 +69,7 @@ exports.create = (req, res) => {
                   date: req.body.date,
                 });
                 Stockmove.create(stockmove).then(datad => {
-                  Id.findOneAndUpdate({_id: ids}, {transfer_id: ids[0].transfer_id+1}, {useFindAndModify: false})
-                    .then(datae => {
-                      findCost(req.body, res);
-                      //res.send(datad);
-                    }).catch(err =>{res.status(500).send({message:err.message}); });
+                  findCost(req.body, res);
                   }).catch(err => {res.status(500).send({message:err.message});
                 }).catch(err =>{res.status(500).send({message:err.message}); });
               }).catch(err =>{res.status(500).send({message:err.message}); });
@@ -78,15 +78,8 @@ exports.create = (req, res) => {
             const qof1 = ({qof: 0-Number(req.body.qty), product: req.body.product, 
               partner: req.body.partner, warehouse: req.body.warehouse, uom: req.body.uom});
             Qof.create(qof1).then(datac => {
-              Id.find().then(ids => {
-                if(ids[0].transfer_id < 10) prefixes = '00000';
-                else if(ids[0].transfer_id < 100) prefixes = '0000';
-                else if(ids[0].transfer_id < 1000) prefixes = '000';
-                else if(ids[0].transfer_id < 10000) prefixes = '00';
-                else if(ids[0].transfer_id < 100000) prefixes = '0';
-                transid = ids[0].pre_transfer_id+'-'+new Date().getFullYear().toString().substr(-2)+
-                '0'+(new Date().getMonth() + 1).toString().slice(-2)+
-                prefixes+ids[0].transfer_id.toString();
+              getUpdateTransId().then(restransid => {
+                transid = restransid;
                 const stockmove = ({
                   trans_id: req.body.transid,
                   user: req.body.user,
@@ -99,11 +92,7 @@ exports.create = (req, res) => {
                   date: req.body.date,
                 });
                 Stockmove.create(stockmove).then(datad => {
-                  Id.findOneAndUpdate({_id: ids}, {transfer_id: ids[0].transfer_id+1}, {useFindAndModify: false})
-                    .then(datae => {
-                      findCost(req.body, res);
-                      //res.send(datad);
-                    }).catch(err =>{res.status(500).send({message:err.message}); });
+                  findCost(req.body, res);
                   }).catch(err => {res.status(500).send({message:err.message});
                 }).catch(err =>{res.status(500).send({message:err.message}); });
               }).catch(err =>{res.status(500).send({message:err.message}); });
@@ -160,15 +149,8 @@ function playSequencing(x, reqs, dat, res){
     const qof1 = ({qof: 0-(Number(reqs.qty) * Number(dat[x].qty)), product: dat[x].product, 
       warehouse: reqs.warehouse, uom: reqs.uom});
       Qof.create(qof1).then(datac => {
-        Id.find().then(ids => {
-          if(ids[0].transfer_id < 10) prefixes = '00000';
-          else if(ids[0].transfer_id < 100) prefixes = '0000';
-          else if(ids[0].transfer_id < 1000) prefixes = '000';
-          else if(ids[0].transfer_id < 10000) prefixes = '00';
-          else if(ids[0].transfer_id < 100000) prefixes = '0';
-          transid = ids[0].pre_transfer_id+'-'+new Date().getFullYear().toString().substr(-2)+
-          '0'+(new Date().getMonth() + 1).toString().slice(-2)+
-          prefixes+ids[0].transfer_id.toString();
+        getUpdateTransId().then(restransid => {
+          transid = restransid;
           const stockmove = ({
             trans_id: transid,
             user: reqs.user,
@@ -180,10 +162,7 @@ function playSequencing(x, reqs, dat, res){
             date: reqs.date
           });
           Stockmove.create(stockmove).then(datad => {
-            Id.findOneAndUpdate({_id: ids}, {transfer_id: ids[0].transfer_id+1}, {useFindAndModify: false})
-              .then(datae => {
-                findCostBundle(x, reqs, dat, res);
-              }).catch(err =>{res.status(500).send({message:err.message}); });
+            findCostBundle(x, reqs, dat, res);
             }).catch(err => {res.status(500).send({message:err.message});
           }).catch(err =>{res.status(500).send({message:err.message}); });
         }).catch(err =>{res.status(500).send({message:err.message}); });
@@ -192,7 +171,7 @@ function playSequencing(x, reqs, dat, res){
       const qof1 = ({qof: 0-(Number(reqs.qty) * Number(dat[x].qty)), product: dat[x].product, 
         partner: reqs.partner, warehouse: reqs.warehouse, uom: reqs.uom});
       Qof.create(qof1).then(datac => {
-        Id.find().then(ids => {
+        /*Id.find().then(ids => {
           if(ids[0].transfer_id < 10) prefixes = '00000';
           else if(ids[0].transfer_id < 100) prefixes = '0000';
           else if(ids[0].transfer_id < 1000) prefixes = '000';
@@ -200,7 +179,9 @@ function playSequencing(x, reqs, dat, res){
           else if(ids[0].transfer_id < 100000) prefixes = '0';
           transid = ids[0].pre_transfer_id+'-'+new Date().getFullYear().toString().substr(-2)+
           '0'+(new Date().getMonth() + 1).toString().slice(-2)+
-          prefixes+ids[0].transfer_id.toString();
+          prefixes+ids[0].transfer_id.toString();*/
+        getUpdateTransId().then(restransid => {
+          transid = restransid;
           const stockmove = ({
             trans_id: transid,
             user: reqs.user,
@@ -213,10 +194,10 @@ function playSequencing(x, reqs, dat, res){
             date: reqs.date
           });
           Stockmove.create(stockmove).then(datad => {
-            Id.findOneAndUpdate({_id: ids}, {transfer_id: ids[0].transfer_id+1}, {useFindAndModify: false})
-              .then(datae => {
+            /*Id.findOneAndUpdate({_id: ids}, {transfer_id: ids[0].transfer_id+1}, {useFindAndModify: false})
+              .then(datae => {*/
                 findCostBundle(x, reqs, dat, res);
-              }).catch(err =>{res.status(500).send({message:err.message}); });
+              //}).catch(err =>{res.status(500).send({message:err.message}); });
             }).catch(err => {res.status(500).send({message:err.message});
           }).catch(err =>{res.status(500).send({message:err.message}); });
         }).catch(err =>{res.status(500).send({message:err.message}); });
@@ -240,11 +221,12 @@ function findCostBundle(x, reqs, dat, res){
       var journ_id = ids._id;
       amountx = ids.amount;
       journid = ids.journal_id;
-      Coa.find().then(datag => {
+      getCoa2('1-3001', '5-1001').then(coa2 => {
+      /*Coa.find().then(datag => {
         let o = datag.findIndex((obj => obj.code == '1-3001'));
-        let p = datag.findIndex((pbj => pbj.code == '5-1001'));
-        let oo = datag[o]._id;
-        let pp = datag[p]._id;
+        let p = datag.findIndex((pbj => pbj.code == '5-1001'));*/
+        let oo = coa2[0];
+        let pp = coa2[1];
         const ent1 = ({journal_id: journid, label: prodname,
           debit_acc: pp, debit: costA, date: reqs.date})
         Entry.create(ent1).then(datah => {
@@ -285,16 +267,14 @@ function insertAcc(req, res) {
       var journ_id = ids._id;
       amountx = ids.amount;
       journid = ids.journal_id;
-      Coa.find().then(data => {
-        let o = data.findIndex((obj => obj.code == '1-3001'));
-        let p = data.findIndex((pbj => pbj.code == '5-1001'));
-        let oo = data[o]._id;
-        let pp = data[p]._id;
+      getCoa2('1-3001', '5-1001').then(coa2 => {
+        let oo = coa2[0];
+        let pp = coa2[1];
         const ent1 = ({journal_id: journid, label: prodname,
-          debit_acc: pp, debit: costA, date: req.date})
+          debit_acc: pp, debit: costA ? debit: 0, date: req.date})
         Entry.create(ent1).then(dataa => {
           const ent2 = ({journal_id: journid, label: prodname,
-            credit_acc: oo, credit: costA, date: req.date})
+            credit_acc: oo, credit: costA ? credit: 0, date: req.date})
           Entry.create(ent2).then(datab => {
             Journal.findOneAndUpdate({_id: journ_id}, 
               {$push: {entries: [dataa._id,datab._id]}, amount: costA + amountx}, {useFindAndModify: false})

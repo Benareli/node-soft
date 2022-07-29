@@ -1,4 +1,5 @@
 const db = require("../models");
+const {id,coa} = require("../function");
 const Purchase = db.purchases;
 const Purchasedetail = db.purchasedetails;
 const Qop = db.qops;
@@ -20,6 +21,21 @@ var journalcount;
 var y1;
 var x;
 var qin;
+
+async function getTransId() {
+  const res1 = await id.getTransId();
+  return res1;
+}
+
+async function getUpdateJournalId() {
+  const res2 = await id.getUpdateJournalId();
+  return res2;
+}
+
+async function getCoa2(coa1, coa2) {
+  const res3 = await coa.getCoa2(coa1, coa2);
+  return res3;
+}
 
 // Create and Save new
 exports.create = (req, res) => {
@@ -121,17 +137,10 @@ function startProcess(req, res){
   qin = req.body[x].qty_rec;
   Purchasedetail.findById(req.body[x].id)
     .then(dataa => {
-      Id.find().then(ids => {
-        transferid = ids[0]._id;
-        transfercount = ids[0].transfer_id;
-        if(ids[0].transfer_id < 10) prefixes = '00000';
-        else if(ids[0].transfer_id < 100) prefixes = '0000';
-        else if(ids[0].transfer_id < 1000) prefixes = '000';
-        else if(ids[0].transfer_id < 10000) prefixes = '00';
-        else if(ids[0].transfer_id < 100000) prefixes = '0';
-        transid = ids[0].pre_transfer_id+'-'+new Date().getFullYear().toString().substr(-2)+
-        '0'+(new Date().getMonth() + 1).toString().slice(-2)+
-        prefixes+ids[0].transfer_id.toString();
+      getTransId().then(tids => {
+        transid = tids[0];
+        transferid = tids[1];
+        transfercount = tids[2];
         const stockmove = ({
           trans_id: transid,
           user: req.params.id,
@@ -211,22 +220,11 @@ function insertQop(req, res){
 }
 
 function insertAcc(req, res) {
-  Coa.find().then(data => {
-    let o = data.findIndex((obj => obj.code == '2-3001'));
-    let p = data.findIndex((pbj => pbj.code == '1-3001'));
-    let oo = data[o]._id;
-    let pp = data[p]._id;
-    Id.find().then(ids => {
-      journalid = ids[0]._id;
-      journalcount = ids[0].journal_id;
-      if(ids[0].journal_id < 10) prefixes = '00000';
-      else if(ids[0].journal_id < 100) prefixes = '0000';
-      else if(ids[0].journal_id < 1000) prefixes = '000';
-      else if(ids[0].journal_id < 10000) prefixes = '00';
-      else if(ids[0].journal_id < 100000) prefixes = '0';
-      journid = ids[0].pre_journal_id+'-'+new Date().getFullYear().toString().substr(-2)+
-      '0'+(new Date().getMonth() + 1).toString().slice(-2)+
-      prefixes+ids[0].journal_id.toString();
+  getCoa2('2-3001', '1-3001').then(coa2 => {
+    let oo = coa2[0];
+    let pp = coa2[1];
+    getUpdateJournalId().then(jids => {
+      journid = jids
       const ent1 = ({journal_id: journid, label: req.body[x].product.name,
         debit_acc: pp, debit: (Number(req.body[x].subtotal) / Number(req.body[x].qty) * qin), 
         date: req.params.date})
@@ -240,10 +238,7 @@ function insertAcc(req, res) {
             entries:[dataa._id, datab._id], date: req.params.date})
           Journal.create(journal).then(datad => {
               o=null,p=null,oo=null,pp=null;
-              Id.findOneAndUpdate({_id: journalid}, {journal_id: journalcount+1}, {useFindAndModify: false})
-                .then(datae => {
-                  sequencing(req, res);
-            }).catch(err =>{res.status(500).send({message:err.message}); });
+              sequencing(req, res);
           }).catch(err =>{res.status(500).send({message:err.message}); });
         }).catch(err =>{res.status(500).send({message:err.message}); });
       }).catch(err =>{res.status(500).send({message:err.message}); });
