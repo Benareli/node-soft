@@ -104,6 +104,7 @@ dist
 .tern-port
 
 #base url
+app/config/api.config.js
 app/config/url.config.js
 .DS_Store
 package-lock.json
