@@ -1,4 +1,5 @@
 const db = require("../models");
+const { compare } = require('../function/key.function');
 const Qof = db.qofs;
 const Product = db.products;
 const Uom = db.uoms;
@@ -8,13 +9,8 @@ const mongoose = require("mongoose");
 
 // Create and Save new
 exports.create = (req, res) => {
-  // Validate request
-  /*if (!req.body.product) {
-    res.status(400).send({ message: "Content can not be empty!" });
-    return;
-  }*/
-
-  // Create
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if(req.body.partner != "null"){
     const qof = new Qof({
       product: mongoose.Types.ObjectId(req.body.product),
@@ -38,13 +34,15 @@ exports.create = (req, res) => {
           err.message || "Some error occurred while creating the Data."});
     });
   }
+}
 };
 
 // Retrieve all from the database.
 exports.findAll = (req, res) => {
   const product = req.query.product;
   var condition = product ? { product: { $regex: new RegExp(product), $options: "i" } } : {};
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Qof.find(condition)
     .populate({ path: 'partner', model: Partner })
     .populate({ path: 'warehouse', model: Warehouse })
@@ -52,13 +50,14 @@ exports.findAll = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an id
 exports.findOne = (req, res) => {
-  const id = req.params.id;
-
-  Qof.findById(id)
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
+  Qof.findById(req.params.id)
     .populate({ path: 'partner', model: Partner })
     .populate({ path: 'warehouse', model: Warehouse })
     .populate({ path: 'uom', model: Uom })
@@ -67,13 +66,15 @@ exports.findOne = (req, res) => {
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an desc
 exports.findByDesc = (req, res) => {
   const product = req.query.product;
   var condition = product ? { product: { $regex: new RegExp(product), $options: "i" } } : {};
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Qof.find(condition)
     .populate({ path: 'partner', model: Partner })
     .populate({ path: 'warehouse', model: Warehouse })
@@ -81,4 +82,5 @@ exports.findByDesc = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };

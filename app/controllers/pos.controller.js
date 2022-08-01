@@ -1,5 +1,6 @@
 const db = require("../models");
 const {id,coa} = require("../function");
+const { compare } = require('../function/key.function');
 const Pos = db.poss;
 const Posdetail = db.posdetails;
 const Possession = db.possessions;
@@ -34,6 +35,8 @@ async function getCoaPos() {
 // Create and Save new
 exports.create = (req, res) => {
   // Validate request
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if (!req.body.order_id) {
     res.status(400).send({ message: "Content can not be empty!" });
     return;
@@ -104,6 +107,7 @@ exports.create = (req, res) => {
       }
     });
   }
+}
 };
 
 function insertAcc(req, res) {
@@ -149,20 +153,22 @@ function insertAcc(req, res) {
 exports.findAll = (req, res) => {
   const order_id = req.query.order_id;
   var condition = order_id ? { order_id: { $regex: new RegExp(order_id), $options: "i" } } : {};
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Pos.find(condition)
     .populate({ path: 'partner', model: Partner })
     .populate({ path: 'user', model: User })
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an id
 exports.findOne = (req, res) => {
-  const id = req.params.id;
-
-  Pos.findById(id)
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
+  Pos.findById(req.params.id)
     .populate({ path: 'partner', model: Partner })
     .populate({ path: 'user', model: User })
     .then(data => {
@@ -170,31 +176,33 @@ exports.findOne = (req, res) => {
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an desc
 exports.findByDesc = (req, res) => {
   const order_id = req.query.order_id;
   var condition = order_id ? { order_id: { $regex: new RegExp(order_id), $options: "i" } } : {};
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Pos.find(condition)
     .populate({ path: 'partner', model: Partner })
     .populate({ path: 'user', model: User })
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Update by the id in the request
 exports.update = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if (!req.body) {
     return res.status(400).send({
       message: "Data to update can not be empty!"
     });
   }
-
-  const id = req.params.id;
-
   Pos.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
     .then(data => {
       if (!data) {
@@ -205,32 +213,5 @@ exports.update = (req, res) => {
         res.send({ message: "Updated successfully." });
       }
     }).catch(err =>{res.status(500).send({message:err.message}); });
-};
-
-// Delete with the specified id in the request
-exports.delete = (req, res) => {
-  const id = req.params.id;
-
-  Pos.findByIdAndRemove(id, { useFindAndModify: false })
-    .then(data => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot delete with id=${id}. Maybe Data was not found!`
-        });
-      } else {
-        res.send({
-          message: "Deleted successfully!"
-        });
-      }
-    }).catch(err =>{res.status(500).send({message:err.message}); });
-};
-
-// Delete all from the database.
-exports.deleteAll = (req, res) => {
-  Pos.deleteMany({})
-    .then(data => {
-      res.send({
-        message: `${data.deletedCount} Data were deleted successfully!`
-      });
-    }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };

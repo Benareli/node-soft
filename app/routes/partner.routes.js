@@ -33,11 +33,5 @@ module.exports = app => {
   // Update with id
   routerPartner.put("/:id", partners.update);
 
-  // Delete with id
-  routerPartner.delete("/:id", partners.delete);
-
-  // Create new
-  routerPartner.delete("/", partners.deleteAll);
-
   app.use("/api/partners", routerPartner);
 };

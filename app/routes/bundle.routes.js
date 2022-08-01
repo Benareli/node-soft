@@ -20,7 +20,7 @@ module.exports = app => {
 
   // Update with id
   routerBundle.put("/:id", bundles.update);
-
+  
   // Delete with id
   routerBundle.delete("/:id", bundles.delete);
 

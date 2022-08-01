@@ -1,4 +1,5 @@
 const db = require("../models");
+const { compare } = require('../function/key.function');
 const Log = db.logs;
 const Store = db.stores;
 const ProductCat = db.productcats;
@@ -14,6 +15,8 @@ const mongoose = require("mongoose");
 // Create and Save new
 exports.create = (req, res) => {
   // Validate request
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if (!req.body.message) {
     res.status(400).send({ message: "Content can not be empty!" });
     return;
@@ -99,6 +102,7 @@ exports.create = (req, res) => {
           err.message || "Some error occurred while creating the Data."});
     });
   }
+}
 };
 
 
@@ -107,19 +111,21 @@ exports.create = (req, res) => {
 exports.findAll = (req, res) => {
   const message = req.query.message;
   var condition = message ? { message: { $regex: new RegExp(message), $options: "i" } } : {};
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Log.find(condition)
     .populate({ path: 'user', model: User })
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an id
 exports.findOne = (req, res) => {
-  const id = req.params.id;
-
-  Log.findById(id)
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
+  Log.findById(req.params.id)
     .populate({ path: 'user', model: User })
     .populate({ path: 'category', model: ProductCat })
     .populate({ path: 'brand', model: Brand })
@@ -130,13 +136,15 @@ exports.findOne = (req, res) => {
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an desc
 exports.findByDesc = (req, res) => {
   const message = req.query.message;
   var condition = message ? { message: { $regex: new RegExp(message), $options: "i" } } : {};
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Log.find(condition)
     .populate({ path: 'user', model: User })
     .populate({ path: 'category', model: ProductCat })
@@ -146,19 +154,20 @@ exports.findByDesc = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Update by the id in the request
 exports.update = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if (!req.body) {
     return res.status(400).send({
       message: "Data to update can not be empty!"
     });
   }
 
-  const id = req.params.id;
-
-  Log.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+  Log.findByIdAndUpdate(req.params.id, req.body, { useFindAndModify: false })
     .then(data => {
       if (!data) {
         res.status(404).send({
@@ -166,32 +175,5 @@ exports.update = (req, res) => {
         });
       } else res.send({ message: "Updated successfully." });
     }).catch(err =>{res.status(500).send({message:err.message}); });
-};
-
-// Delete with the specified id in the request
-exports.delete = (req, res) => {
-  const id = req.params.id;
-
-  Log.findByIdAndRemove(id, { useFindAndModify: false })
-    .then(data => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot delete with id=${id}. Maybe Data was not found!`
-        });
-      } else {
-        res.send({
-          message: "Deleted successfully!"
-        });
-      }
-    }).catch(err =>{res.status(500).send({message:err.message}); });
-};
-
-// Delete all from the database.
-exports.deleteAll = (req, res) => {
-  Log.deleteMany({})
-    .then(data => {
-      res.send({
-        message: `${data.deletedCount} Data were deleted successfully!`
-      });
-    }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };

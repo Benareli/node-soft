@@ -12,7 +12,8 @@ exports.create = (req, res) => {
     res.status(400).send({ message: "Content can not be empty!" });
     return;
   }
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   const possession = ({
     session_id: req.body.session_id,
     store: req.body.store,
@@ -32,14 +33,15 @@ exports.create = (req, res) => {
     open: req.body.open
   });
   Possession.create(possession).then(dataa => { res.send(dataa);});
-
+}
 };
 
 // Retrieve all from the database.
 exports.findAll = (req, res) => {
   const session_id = req.query.session_id;
   var condition = session_id ? { session_id: { $regex: new RegExp(session_id), $options: "i" } } : {};
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Possession.find(condition)
     .populate({ path: 'pos', model: Pos })
     .populate({ path: 'user', model: User })
@@ -52,13 +54,14 @@ exports.findAll = (req, res) => {
           err.message || "Some error occurred while retrieving data."
       });
     });
+  }
 };
 
 // Find a single with an id
 exports.findOne = (req, res) => {
-  const id = req.params.id;
-
-  Possession.findById(id)
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
+  Possession.findById(req.params.id)
     .populate({ path: 'pos', model: Pos })
     .populate({ path: 'payment', model: Payment })
     .populate({ path: 'user', model: User })
@@ -67,20 +70,25 @@ exports.findOne = (req, res) => {
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an user
 exports.findByAllOpen = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Possession.find({open: true})
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an user
 exports.findByUser = (req, res) => {
   const user = req.params.user;
-  
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Possession.find({user: user})
     .populate({ path: 'pos', model: Pos })
     .populate({ path: 'payment', model: Payment })
@@ -88,12 +96,14 @@ exports.findByUser = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an user open
 exports.findByUserOpen = (req, res) => {
   const users = req.params.user;
-  
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Possession.find({user: users, open: true})
     .populate({ path: 'pos', model: Pos })
     .populate({ path: 'payment', model: Payment })
@@ -101,12 +111,14 @@ exports.findByUserOpen = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an user open
 exports.findByUserClose = (req, res) => {
   const users = req.params.user;
-  
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Possession.find({user: users, open: false})
     .populate({ path: 'pos', model: Pos })
     .populate({ path: 'payment', model: Payment })
@@ -114,19 +126,19 @@ exports.findByUserClose = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Update by the id in the request
 exports.update = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if (!req.body) {
     return res.status(400).send({
       message: "Data to update can not be empty!"
     });
   }
-
-  const id = req.params.id;
-
-  Possession.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+  Possession.findByIdAndUpdate(req.params.id, req.body, { useFindAndModify: false })
     .then(data => {
       if (!data) {
         res.status(404).send({
@@ -136,32 +148,5 @@ exports.update = (req, res) => {
         res.send({ message: "Updated successfully." });
       }
     }).catch(err =>{res.status(500).send({message:err.message}); });
-};
-
-// Delete with the specified id in the request
-exports.delete = (req, res) => {
-  const id = req.params.id;
-
-  Possession.findByIdAndRemove(id, { useFindAndModify: false })
-    .then(data => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot delete with id=${id}. Maybe Data was not found!`
-        });
-      } else {
-        res.send({
-          message: "Deleted successfully!"
-        });
-      }
-    }).catch(err =>{res.status(500).send({message:err.message}); });
-};
-
-// Delete all from the database.
-exports.deleteAll = (req, res) => {
-  Possession.deleteMany({})
-    .then(data => {
-      res.send({
-        message: `${data.deletedCount} Data were deleted successfully!`
-      });
-    }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };

@@ -15,11 +15,5 @@ module.exports = app => {
   // Update with id
   routerLog.put("/:id", logs.update);
 
-  // Delete with id
-  routerLog.delete("/:id", logs.delete);
-
-  // Create new
-  routerLog.delete("/", logs.deleteAll);
-
   app.use("/api/logs", routerLog);
 };

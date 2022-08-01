@@ -18,11 +18,5 @@ module.exports = app => {
   // Update with id
   routerTax.put("/:id", taxs.update);
 
-  // Delete with id
-  routerTax.delete("/:id", taxs.delete);
-
-  // Create new
-  routerTax.delete("/", taxs.deleteAll);
-
   app.use("/api/taxs", routerTax);
 };

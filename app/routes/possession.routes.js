@@ -27,11 +27,5 @@ module.exports = app => {
   // Update with id
   routerPossession.put("/:id", possessions.update);
 
-  // Delete with id
-  routerPossession.delete("/:id", possessions.delete);
-
-  // Create new
-  routerPossession.delete("/", possessions.deleteAll);
-
   app.use("/api/possessions", routerPossession);
 };

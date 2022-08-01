@@ -15,11 +15,5 @@ module.exports = app => {
   // Update with id
   routerPay.put("/:id", payments.update);
 
-  // Delete with id
-  routerPay.delete("/:id", payments.delete);
-
-  // Create new
-  routerPay.delete("/", payments.deleteAll);
-
   app.use("/api/payments", routerPay);
 };

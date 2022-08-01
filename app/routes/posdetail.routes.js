@@ -15,11 +15,5 @@ module.exports = app => {
   // Update with id
   routerPosDet.put("/:id", posdetails.update);
 
-  // Delete with id
-  routerPosDet.delete("/:id", posdetails.delete);
-
-  // Create new
-  routerPosDet.delete("/", posdetails.deleteAll);
-
   app.use("/api/posdetails", routerPosDet);
 };

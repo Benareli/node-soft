@@ -1,4 +1,5 @@
 const db = require("../models");
+const { compare } = require('../function/key.function');
 const {id,coa} = require("../function");
 const Pos = db.poss;
 const Possession = db.possessions;
@@ -15,6 +16,8 @@ var journalcount;
 // Create and Save new
 exports.create = (req, res) => {
   // Validate request
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if (!req.body.order_id) {
     res.status(400).send({ message: "Content can not be empty!" });
     return;
@@ -79,6 +82,7 @@ exports.create = (req, res) => {
       }
     });
   }
+}
 };
 
 async function getJournalId1() {
@@ -170,47 +174,51 @@ function changeAcc(req, res) {
 exports.findAll = (req, res) => {
   const order_id = req.query.order_id;
   var condition = order_id ? { order_id: { $regex: new RegExp(order_id), $options: "i" } } : {};
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Payment.find(condition)
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an id
 exports.findOne = (req, res) => {
-  const id = req.params.id;
-
-  Payment.findById(id)
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
+  Payment.findById(req.params.id)
     .then(data => {
       if (!data)
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an desc
 exports.findByDesc = (req, res) => {
   const order_id = req.query.order_id;
   var condition = order_id ? { order_id: { $regex: new RegExp(order_id), $options: "i" } } : {};
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Payment.find(condition)
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Update by the id in the request
 exports.update = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if (!req.body) {
     return res.status(400).send({
       message: "Data to update can not be empty!"
     });
   }
-
-  const id = req.params.id;
-
-  Payment.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+  Payment.findByIdAndUpdate(req.params.id, req.body, { useFindAndModify: false })
     .then(data => {
       if (!data) {
         res.status(404).send({
@@ -220,32 +228,5 @@ exports.update = (req, res) => {
         res.send({ message: "Updated successfully." });
       }
     }).catch(err =>{res.status(500).send({message:err.message}); });
-};
-
-// Delete with the specified id in the request
-exports.delete = (req, res) => {
-  const id = req.params.id;
-
-  Payment.findByIdAndRemove(id, { useFindAndModify: false })
-    .then(data => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot delete with id=${id}. Maybe Data was not found!`
-        });
-      } else {
-        res.send({
-          message: "Deleted successfully!"
-        });
-      }
-    }).catch(err =>{res.status(500).send({message:err.message}); });
-};
-
-// Delete all from the database.
-exports.deleteAll = (req, res) => {
-  Payment.deleteMany({})
-    .then(data => {
-      res.send({
-        message: `${data.deletedCount} Data were deleted successfully!`
-      });
-    }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };

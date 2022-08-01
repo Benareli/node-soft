@@ -21,11 +21,5 @@ module.exports = app => {
   // Update with id
   routerBrand.put("/:id", brands.update);
 
-  // Delete with id
-  routerBrand.delete("/:id", brands.delete);
-
-  // Create new
-  routerBrand.delete("/", brands.deleteAll);
-
   app.use("/api/brands", routerBrand);
 };

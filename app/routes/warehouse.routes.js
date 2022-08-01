@@ -24,11 +24,5 @@ module.exports = app => {
   // Update with id
   routerWh.put("/:id", warehouses.update);
 
-  // Delete with id
-  routerWh.delete("/:id", warehouses.delete);
-
-  // Create new
-  routerWh.delete("/", warehouses.deleteAll);
-
   app.use("/api/warehouses", routerWh);
 };

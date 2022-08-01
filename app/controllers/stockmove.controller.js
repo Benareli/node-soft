@@ -1,4 +1,5 @@
 const db = require("../models");
+const { compare } = require('../function/key.function');
 const Stockmove = db.stockmoves;
 const Journal = db.journals;
 const Entry = db.entrys;
@@ -17,11 +18,12 @@ var journalcount;
 // Create and Save new
 exports.create = (req, res) => {
   // Validate request
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if (!req.body.product) {
     res.status(400).send({ message: "Content can not be empty!" });
     return;
   }
-
   // Create
   if(req.body.partner != "null"){
     const stockmove = ({
@@ -60,6 +62,7 @@ exports.create = (req, res) => {
       }).catch(err => {res.status(500).send({message:err.message});
     });
   }
+}
 };
 
 function insertAcc(req, res) {
@@ -131,7 +134,8 @@ function insertAcc(req, res) {
 exports.findAll = (req, res) => {
   const product = req.query.product;
   var condition = product ? { product: { $regex: new RegExp(product), $options: "i" } } : {};
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Stockmove.find(condition)
     .populate({ path: 'user', model: User })
     .populate({ path: 'product', model: Product })
@@ -141,13 +145,14 @@ exports.findAll = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an id
 exports.findOne = (req, res) => {
-  const id = req.params.id;
-
-  Stockmove.findById(id)
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
+  Stockmove.findById(req.params.id)
     .populate({ path: 'user', model: User })
     .populate({ path: 'product', model: Product })
     .populate({ path: 'partner', model: Partner })
@@ -158,21 +163,26 @@ exports.findOne = (req, res) => {
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an desc
 exports.findByDesc = (req, res) => {
   const product = req.query.product;
   var condition = product ? { product: { $regex: new RegExp(product), $options: "i" } } : {};
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Stockmove.find({product: req.query.product})
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Retrieve all from the database.
 exports.findTransId = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Stockmove.find({trans_id: req.params.transid})
     .populate({ path: 'user', model: User })
     .populate({ path: 'product', model: Product })
@@ -182,4 +192,5 @@ exports.findTransId = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };

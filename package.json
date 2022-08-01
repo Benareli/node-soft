@@ -1,10 +1,11 @@
 {
-  "name": "node-js-jwt-auth-mongodb",
+  "name": "node-ablouz",
   "version": "1.0.0",
   "description": "Node.js + MongoDB: JWT Authentication & Authorization",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "NODE_ENV=production node server.js"
   },
   "keywords": [
     "node.js",
@@ -13,11 +14,12 @@
     "authentication",
     "mongodb"
   ],
-  "author": "bezkoder",
+  "author": "benareli",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^16.0.0",
     "express": "^4.17.1",
     "fs": "^0.0.1-security",

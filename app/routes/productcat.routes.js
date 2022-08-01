@@ -21,11 +21,5 @@ module.exports = app => {
   // Update with id
   routerProductCat.put("/:id", productcats.update);
 
-  // Delete with id
-  routerProductCat.delete("/:id", productcats.delete);
-
-  // Create new
-  routerProductCat.delete("/", productcats.deleteAll);
-
   app.use("/api/productcats", routerProductCat);
 };

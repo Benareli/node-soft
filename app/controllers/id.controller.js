@@ -1,17 +1,23 @@
 const db = require("../models");
+const { compare } = require('../function/key.function');
 const Id = db.ids;
 const mongoose = require("mongoose");
 
 // Retrieve all from the database.
 exports.findAll = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Id.find(req.query.pos_id)
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Retrieve POSID.
 exports.findPOSessId = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Id.find()
     .then(ids => {
       if(ids[0].pos_session < 10) prefixes = '00000';
@@ -28,10 +34,13 @@ exports.findPOSessId = (req, res) => {
           //console.log(data, posid);
         }).catch(err =>{res.status(500).send({message:err.message}); });
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Retrieve POSID.
 exports.findPOSId = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Id.find()
     .then(ids => {
       if(ids[0].pos_id < 10) prefixes = '00000';
@@ -48,10 +57,13 @@ exports.findPOSId = (req, res) => {
           //console.log(data, posid);
         }).catch(err =>{res.status(500).send({message:err.message}); });
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Retrieve PaymentID.
 exports.findPaymentId = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Id.find()
     .then(ids => {
       if(ids[0].pay_id < 10) prefixes = '00000';
@@ -68,19 +80,20 @@ exports.findPaymentId = (req, res) => {
           //console.log(data, posid);
         }).catch(err =>{res.status(500).send({message:err.message}); });
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Update by the id in the request
 exports.update = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if (!req.body) {
     return res.status(400).send({
       message: "Data to update can not be empty!"
     });
   }
 
-  const id = req.params.id;
-
-  Id.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+  Id.findByIdAndUpdate(req.params.id, req.body, { useFindAndModify: false })
     .then(data => {
       if (!data) {
         res.status(404).send({
@@ -95,6 +108,7 @@ exports.update = (req, res) => {
         message: "Error updating with id=" + id
       });
     });
+  }
 };
 
 /*exports.journalId = 

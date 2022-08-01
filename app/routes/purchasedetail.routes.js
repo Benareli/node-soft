@@ -18,14 +18,11 @@ module.exports = app => {
   // Update with id
   routerPurDet.put("/:id", purchasedetails.update);
 
-  // Update with id
-  routerPurDet.put("/receiveAll/:id/:partner/:wh/:date", purchasedetails.updateReceiveAll);
-
   // Delete with id
   routerPurDet.delete("/:id", purchasedetails.delete);
-
-  // Create new
-  routerPurDet.delete("/", purchasedetails.deleteAll);
+  
+  // Update with id
+  routerPurDet.put("/receiveAll/:id/:partner/:wh/:date", purchasedetails.updateReceiveAll);
 
   app.use("/api/purchasedetails", routerPurDet);
 };

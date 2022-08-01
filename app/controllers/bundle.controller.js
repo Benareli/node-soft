@@ -1,4 +1,5 @@
 const db = require("../models");
+const { compare } = require('../function/key.function');
 const Bundle = db.bundles;
 const Product = db.products;
 const Uom = db.uoms;
@@ -7,6 +8,8 @@ const duplicate = [];
 // Create and Save new
 exports.create = (req, res) => {
   // Validate request
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if (!req.body.bundle) {
     res.status(400).send({ message: "Content can not be empty!" });
     return;
@@ -21,13 +24,15 @@ exports.create = (req, res) => {
   Bundle.create(bundle).then(dataa => {
       res.send(dataa);
   }).catch(err =>{res.status(500).send({message:err.message}); });
+}
 };
 
 // Retrieve all from the database.
 exports.findAll = (req, res) => {
   const bundle = req.query.bundle;
   var condition = bundle ? { bundle: { $regex: new RegExp(bundle), $options: "i" } } : {};
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Bundle.find(condition)
     .populate({ path: 'bundle', model: Product })
     .populate({ path: 'uom', model: Uom })
@@ -35,13 +40,14 @@ exports.findAll = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an id
 exports.findOne = (req, res) => {
-  const id = req.params.id;
-
-  Bundle.findById(id)
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
+  Bundle.findById(req.params.id)
     .populate({ path: 'bundle', model: Product })
     .populate({ path: 'uom', model: Uom })
     .populate({ path: 'product', model: Product })
@@ -50,10 +56,13 @@ exports.findOne = (req, res) => {
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an desc
 exports.findByProduct = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Bundle.find({product: req.params.product})
     .populate({ path: 'bundle', model: Product })
     .populate({ path: 'uom', model: Uom })
@@ -61,10 +70,13 @@ exports.findByProduct = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an desc
 exports.findByBundle = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Bundle.find({bundle: req.params.bundle})
     .populate({ path: 'bundle', model: Product })
     .populate({ path: 'uom', model: Uom })
@@ -72,19 +84,20 @@ exports.findByBundle = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Update by the id in the request
 exports.update = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if (!req.body) {
     return res.status(400).send({
       message: "Data to update can not be empty!"
     });
   }
 
-  const id = req.params.id;
-
-  Bundle.findByIdAndUpdate(id, ({
+  Bundle.findByIdAndUpdate(req.params.id, ({
     bundle: req.body.bundle,
     qty: req.body.qty,
     uom: req.body.uom,
@@ -102,20 +115,24 @@ exports.update = (req, res) => {
         }).catch(err =>{res.status(500).send({message:err.message}); });
       } 
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Delete with the specified id in the request
 exports.delete = (req, res) => {
-  const id = req.params.id;
-
-  Bundle.findByIdAndRemove(id, { useFindAndModify: false })
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
+  Bundle.findByIdAndRemove(req.params.id, { useFindAndModify: false })
     .then(data => {
       if (!data) {
         res.status(404).send({
           message: `Cannot delete with id=${id}. Maybe Data was not found!`
         });
       } else {
-        res.send({message: "Deleted successfully!"});
+        res.send({
+          message: "Deleted successfully!"
+        });
       }
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };

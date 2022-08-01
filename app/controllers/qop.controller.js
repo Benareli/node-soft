@@ -1,4 +1,5 @@
 const db = require("../models");
+const { compare } = require('../function/key.function');
 const Qop = db.qops;
 const Product = db.products;
 const Uom = db.uoms;
@@ -8,7 +9,8 @@ const mongoose = require("mongoose");
 
 // Create and Save new
 exports.create = (req, res) => {
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   // Create
   const qop = new Qop({
     product: mongoose.Types.ObjectId(req.body.product),
@@ -25,11 +27,13 @@ exports.create = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Create and Update Product new
 exports.createUpdate = (req, res) => {
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   // Find first
   if(req.body.partner != "null"){
     Qop.find({product: req.body.product, partner: req.body.partner, warehouse: req.body.warehouse})
@@ -118,6 +122,7 @@ exports.createUpdate = (req, res) => {
         
       }).catch(err =>{res.status(500).send({message:err.message}); });
   }
+}
 };
 
 
@@ -126,7 +131,8 @@ exports.findAll = (req, res) => {
   /*const product = req.query.product;
   var condition = product ? { product: { $regex: new RegExp(product), $options: "i" } } : {};
   var o_id = mongoose.Types.ObjectId(req.query.product);*/
-
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Qop.find({product: req.query.product})
     .populate({ path: 'partner', model: Partner })
     .populate({ path: 'warehouse', model: Warehouse })
@@ -134,13 +140,14 @@ exports.findAll = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an id
 exports.findOne = (req, res) => {
-  const id = req.params.id;
-
-  Qop.findById(id)
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
+  Qop.findById(req.params.id)
     .populate({ path: 'partner', model: Partner })
     .populate({ path: 'warehouse', model: Warehouse })
     .populate({ path: 'uom', model: Uom })
@@ -149,10 +156,13 @@ exports.findOne = (req, res) => {
         res.status(404).send({ message: "Not found Data with id " + id });
       else res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Find a single with an desc
 exports.findByProduct = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   Qop.find({product: req.params.product,warehouse: req.params.warehouse})
     .populate({ path: 'partner', model: Partner })
     .populate({ path: 'warehouse', model: Warehouse })
@@ -160,19 +170,19 @@ exports.findByProduct = (req, res) => {
     .then(data => {
       res.send(data);
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
 
 // Update by the id in the request
 exports.update = (req, res) => {
+  if(compare(req, res)==0 || !req.headers.apikey) res.status(401).send({ message: "Unauthorized!" });
+  else{
   if (!req.body) {
     return res.status(400).send({
       message: "Data to update can not be empty!"
     });
   }
-
-  const id = req.params.id;
-
-  Qop.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+  Qop.findByIdAndUpdate(req.params.id, req.body, { useFindAndModify: false })
     .then(data => {
       if (!data) {
         res.status(404).send({
@@ -180,4 +190,5 @@ exports.update = (req, res) => {
         });
       } else res.send({ message: "Updated successfully." });
     }).catch(err =>{res.status(500).send({message:err.message}); });
+  }
 };
